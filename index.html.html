@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Keep Pushing</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background: #241934;
+  }
+  .frame-outer {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  .frame-box { width: 100%; height: 100%; overflow-x: hidden; position: relative; }
+  #bgCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; }
+  #toastLayer {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    z-index: 20; display: flex; flex-direction: column; gap: 8px;
+    width: min(90%, 380px); pointer-events: none;
+  }
+  .toast {
+    pointer-events: auto; background: var(--ink-light); color: #FFF6EC;
+    border-radius: 8px; padding: 11px 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    border-left: 4px solid var(--amber); animation: toastIn 0.25s ease;
+  }
+  .toast-title { font-weight: 700; font-size: 13px; margin-bottom: 2px; padding-right: 18px; }
+  .toast-body { font-size: 12px; color: #DCD2EC; line-height: 1.35; }
+  .toast-close {
+    float: right; margin: -2px -4px 0 0; background: none; border: none;
+    color: #DCD2EC; cursor: pointer; font-size: 13px; padding: 2px 6px;
+  }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) {
+    .toast { animation: none; }
+  }
+  @media (min-width: 640px) {
+    .frame-outer { padding: 32px 16px; align-items: center; }
+    .frame-box {
+      border: 1px solid #3F6B4A;
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+      overflow: hidden;
+      max-width: 480px;
+      width: 100%;
+      height: 820px;
+      max-height: calc(100vh - 64px);
+    }
+  }
+  @media (min-width: 900px) {
+    .frame-box { max-width: 820px; }
+  }
+  @media (min-width: 1200px) {
+    .frame-box { max-width: 1040px; }
+  }
+</style>
+</head>
+<body>
+<div class="frame-outer"><div class="frame-box">
+<canvas id="bgCanvas" aria-hidden="true"></canvas>
+<div id="app"></div>
+<div id="toastLayer" aria-live="polite"></div>
+<style>
+  :root {
+    --bg-deep: #241934;
+    --bg-panel: #FFFFFF;
+    --bg-panel-2: #F3ECFB;
+    --paper: #FFFBEF;
+    --paper-line: #E6DCC3;
+    --ink-light: #241934;
+    --ink-soft: #6B5C82;
+    --ink-faint: #A79BBF;
+    --amber: #FF8A3D;
+    --amber-dim: #E06A1F;
+    --teal: #2FB6A5;
+    --rust: #E14F63;
+    --line: #E4DCF2;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--bg-deep); }
+
+  #app {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: transparent;
+    color: var(--ink-light);
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+  }
+  .app-shell { display: flex; flex-direction: column-reverse; height: 100%; overflow-x: hidden; width: 100%; }
+  .app-body { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+  .app-header {
+    flex: 0 0 auto;
+    padding: 14px 18px 10px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+  }
+  .app-header .title { font-size: 20px; margin: 2px 0 6px; }
+  .app-header .stats-row { gap: 8px; }
+  .app-header .stat { padding: 8px 6px; }
+  .app-header .stat .num { font-size: 18px; }
+  .app-main {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px 18px 20px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab-grid { display: block; }
+  .app-tabbar {
+    flex: 0 0 auto;
+    display: flex;
+    border-top: 1px solid var(--line);
+    background: var(--bg-panel);
+  }
+  .tab-btn {
+    flex: 1;
+    background: none;
+    border-radius: 0;
+    padding: 10px 4px 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .tab-btn .tab-icon { display: block; font-size: 18px; margin-bottom: 2px; }
+  .tab-btn.active { color: var(--amber); }
+  .tab-btn:active { transform: none; background: var(--bg-panel-2); }
+
+  @media (min-width: 720px) {
+    .app-shell { flex-direction: row; }
+    .app-tabbar {
+      flex: 0 0 150px;
+      flex-direction: column;
+      border-top: none;
+      border-right: 1px solid var(--line);
+      padding: 18px 0;
+      justify-content: flex-start;
+      gap: 2px;
+    }
+    .tab-btn {
+      flex: 0 0 auto;
+      text-align: left;
+      padding: 11px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tab-btn .tab-icon { display: inline; margin: 0; font-size: 16px; }
+    .app-header { text-align: left; padding: 20px 26px 14px; }
+    .app-main { padding: 20px 26px 26px; }
+    .tab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  }
+  #app .content {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 24px 90px;
+  }
+  @media (min-width: 640px) {
+    #app .content { padding: 64px 48px 100px; }
+  }
+
+  /* ---- Header + signature lamp ---- */
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+  }
+  h1.title {
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-weight: 500;
+    font-size: 34px;
+    letter-spacing: 0.01em;
+    text-align: center;
+    margin: 6px 0 4px;
+    color: var(--ink-light);
+  }
+  .lamp-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 28px 0 8px;
+  }
+  .lamp-caption {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  /* ---- Ledger spine layout ---- */
+  .section {
+    position: relative;
+    padding: 28px 0 28px 26px;
+    border-left: 1px solid var(--line);
+    margin-left: 6px;
+  }
+  .section:first-of-type { padding-top: 10px; }
+  .section:last-of-type { border-left: 1px solid transparent; }
+  .section::before {
+    content: "";
+    position: absolute;
+    left: -5px;
+    top: 34px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 0 0 0 4px var(--bg-deep);
+  }
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  /* ---- Quote ---- */
+  .quote-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 22px 24px;
+    font-family: Georgia, serif;
+    font-size: 17px;
+    line-height: 1.55;
+    font-style: italic;
+    color: var(--ink-light);
+    border-left: 3px solid var(--amber);
+  }
+
+  /* ---- Note (paper card) ---- */
+  .note-card {
+    background: var(--paper);
+    color: #3A3325;
+    border-radius: 4px;
+    padding: 16px 18px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+  }
+  .note-empty { background: transparent; border: 1px dashed var(--line); box-shadow: none; text-align: center; }
+  .note-text { font-family: Georgia, serif; font-size: 15px; line-height: 1.45; white-space: pre-wrap; }
+  .note-input {
+    width: 100%;
+    min-height: 60px;
+    border: 1px solid var(--paper-line);
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-family: Georgia, serif;
+    font-size: 14px;
+    resize: vertical;
+    background: #FFFDF6;
+    color: #3A3325;
+  }
+
+  /* ---- Stats ---- */
+  .stats-row { display: flex; gap: 10px; }
+  .stat {
+    flex: 1;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 16px 10px;
+    text-align: center;
+  }
+  .stat .num { font-size: 24px; font-weight: 700; color: var(--amber); font-family: Georgia, serif; }
+  .stat .label { font-size: 10.5px; color: var(--ink-soft); margin-top: 3px; letter-spacing: 0.03em; }
+
+  /* ---- Task card ---- */
+  .task-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 26px 22px;
+    text-align: center;
+  }
+  .task-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 10px; }
+  .task-text { font-size: 19px; font-weight: 500; line-height: 1.4; margin-bottom: 20px; color: var(--ink-light); }
+  .timer { font-family: Georgia, serif; font-size: 42px; font-weight: 700; color: var(--amber); margin-bottom: 16px; letter-spacing: 0.04em; }
+  .task-card-focus { animation: focusGlow 2.6s ease-in-out infinite; }
+  @keyframes focusGlow {
+    0%, 100% { box-shadow: 0 0 0 rgba(255,138,61,0); }
+    50% { box-shadow: 0 0 22px rgba(255,138,61,0.4); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .task-card-focus { animation: none; }
+  }
+  .timer-hint { font-size: 13px; color: var(--ink-soft); margin-bottom: 16px; }
+  .done-msg { font-size: 15px; color: var(--teal); font-weight: 600; margin-top: 2px; }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 4px;
+    background: var(--amber);
+    color: #1C130A;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.08s ease, background 0.15s ease;
+  }
+  button:active { transform: scale(0.98); background: var(--amber-dim); }
+  button:disabled { background: var(--line); color: var(--ink-faint); cursor: default; }
+  .link-btn {
+    width: auto;
+    background: none;
+    color: var(--teal);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: underline;
+    padding: 6px 0;
+  }
+  .link-btn:active { background: none; transform: none; }
+  .danger-btn { background: var(--rust); color: #FFF3EF; }
+  .danger-btn:active { background: #9C4638; }
+
+  .mood-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .mood-label { font-size: 14px; font-weight: 600; color: var(--ink-light); margin-bottom: 12px; }
+  .mood-btns { display: flex; gap: 8px; }
+  .mood-btn { padding: 12px 6px; font-size: 13px; }
+  .mood-hint { font-size: 11px; color: var(--ink-faint); margin-top: 10px; }
+
+  .sched-toggle { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .sched-toggle-btn { flex: 1 1 30%; min-width: 90px; padding: 10px; font-size: 13px; background: var(--bg-panel-2); color: var(--ink-soft); }
+  .sched-toggle-btn.active { background: var(--amber); color: #2A1608; }
+  .schedule-intro { font-size: 13px; color: var(--ink-soft); margin-bottom: 14px; text-align: center; }
+  .sched-time-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .sched-icon { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+  .sched-block {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--amber);
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+  .sched-block.sched-done { border-left-color: var(--teal); opacity: 0.7; }
+  .sched-time { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; }
+  .sched-timerange { text-transform: none; letter-spacing: normal; color: var(--ink-faint); font-weight: 400; }
+  .sched-task { font-size: 16px; font-weight: 500; color: var(--ink-light); margin-bottom: 4px; }
+  .sched-mins { font-size: 12px; color: var(--ink-faint); margin-bottom: 12px; }
+  .sched-done-btn { margin-bottom: 8px; }
+
+  /* ---- Calendar ---- */
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .cal-month { font-family: Georgia, serif; font-weight: 600; font-size: 15px; color: var(--ink-light); }
+  .cal-nav { width: 30px; height: 30px; padding: 0; border-radius: 50%; background: var(--bg-panel-2); color: var(--ink-light); font-size: 15px; line-height: 1; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+  .cal-weekdays { font-size: 10.5px; color: var(--ink-faint); margin-bottom: 4px; font-weight: 600; }
+  .cal-cell {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 12.5px; border-radius: 4px; color: var(--ink-soft);
+  }
+  .cal-empty { visibility: hidden; }
+  .cal-cell[data-date] { cursor: pointer; }
+  .cal-cell[data-date]:active { background: var(--bg-panel-2); }
+  .cal-done { background: var(--teal); color: #FFF; font-weight: 700; }
+  .cal-today { outline: 2px solid var(--amber); outline-offset: -2px; }
+  .cal-selected { box-shadow: 0 0 0 2px var(--amber) inset; }
+
+  .day-detail { margin-top: 12px; background: var(--bg-panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; }
+  .day-detail-journal { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+  .day-detail-label { font-size: 12px; font-weight: 700; color: var(--amber); margin-bottom: 8px; }
+  .day-detail-empty { font-size: 13px; color: var(--ink-soft); }
+
+  .report-day { margin-top: 14px; }
+  .report-day-label { font-size: 11px; font-weight: 700; color: var(--amber); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .report-row { display: flex; gap: 8px; font-size: 13.5px; padding: 4px 0; align-items: baseline; color: var(--ink-light); }
+  .report-time { color: var(--ink-faint); font-size: 11.5px; min-width: 42px; }
+  .report-task { flex: 1; }
+  .report-mins { color: var(--ink-faint); font-size: 11.5px; }
+
+  /* ---- Panels shared ---- */
+  .panel { background: var(--bg-panel); border: 1px solid var(--line); border-radius: 4px; padding: 20px; }
+  .panel + .panel { margin-top: 14px; }
+  .panel-title { font-size: 12px; color: var(--ink-soft); margin-bottom: 12px; letter-spacing: 0.02em; }
+
+  /* ---- Journal ---- */
+  .journal-past-entry { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
+  .journal-past-entry .report-day-label { border: none; padding: 0; margin-bottom: 4px; }
+
+  /* ---- Video grid ---- */
+  .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 4px; }
+  .video-card { display: block; cursor: pointer; text-decoration: none; color: var(--ink-light); border-radius: 4px; overflow: hidden; background: var(--bg-panel-2); border: 1px solid var(--line); transition: transform 0.08s ease; }
+  .video-card:active { transform: scale(0.97); }
+  .video-thumb-wrap { position: relative; width: 100%; aspect-ratio: 16/9; background: var(--line); }
+  .video-thumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .video-thumb-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--ink-faint); }
+  .video-play-badge {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: #FFF; background: rgba(20,30,20,0.18);
+    opacity: 0; transition: opacity 0.15s ease;
+  }
+  .video-card:hover .video-play-badge, .video-card:active .video-play-badge { opacity: 1; }
+  .video-title { font-size: 12.5px; padding: 8px 10px; line-height: 1.3; }
+  .remove-video-btn { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; padding: 0; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; font-size: 12px; line-height: 1; }
+  .video-card-playing { grid-column: 1 / -1; cursor: default; background: var(--bg-panel); }
+  .video-embed-wrap { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; }
+  .video-embed-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .video-card-playing .video-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+  /* ---- Manage tasks ---- */
+  .task-row { display: flex; gap: 8px; align-items: center; font-size: 13.5px; padding: 5px 0; color: var(--ink-light); }
+  .task-row .report-task { flex: 1; }
+  .remove-task-btn { width: auto; background: none; color: var(--ink-faint); padding: 2px 6px; font-size: 13px; }
+  .remove-task-btn:active { background: none; transform: none; color: var(--rust); }
+  .form-row { margin-top: 12px; }
+  .form-row input {
+    width: 100%; border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px;
+    font-size: 14px; background: var(--bg-panel-2); color: var(--ink-light); margin-top: 8px;
+  }
+  .form-row input::placeholder { color: var(--ink-faint); }
+  .divider-thin { border-top: 1px solid var(--line); margin: 14px 0; }
+
+  .loading { text-align: center; color: var(--ink-soft); padding: 60px 0; }
+</style>
+<script>
+(function() {
+  const TASKS = [
+    { text: "Drink a full glass of water.", minutes: 1 },
+    { text: "Step outside for a short walk.", minutes: 10 },
+    { text: "Write down one thing you're grateful for.", minutes: 2 },
+    { text: "Tidy one small area (a desk, a shelf).", minutes: 10 },
+    { text: "Stretch your body.", minutes: 5 },
+    { text: "Write about your day.", minutes: 5 },
+    { text: "Sit and just breathe, slowly.", minutes: 5 },
+    { text: "Send one message to someone you care about.", minutes: 3 },
+    { text: "Read something.", minutes: 10 },
+    { text: "Focus on learning Python.", minutes: 20 },
+    { text: "Go for a longer walk.", minutes: 30 },
+    { text: "Take a proper break outside.", minutes: 60 }
+  ];
+
+  const QUOTES = [
+    "Small steps still move you forward.",
+    "You showed up today. That matters.",
+    "Progress isn't always loud, but it's still progress.",
+    "One task at a time is still a plan.",
+    "You don't have to feel ready to take a step.",
+    "Consistency beats intensity. You're doing fine.",
+    "Every streak starts with a single day.",
+    "Rest is allowed. Quitting isn't required.",
+    "You're allowed to go slow, as long as you keep going.",
+    "This counts. Don't let anyone tell you it doesn't.",
+    "Starting badly still beats not starting.",
+    "The task is smaller than the dread about it.",
+    "You don't need motivation. You need two minutes.",
+    "Future you is watching. Give them something good.",
+    "Perfect is the enemy of done. Done is enough.",
+    "The hardest part is always the first minute.",
+    "Waiting to feel ready is its own kind of stalling.",
+    "Momentum is built, not found.",
+    "You can't out-plan a first step. Just take it.",
+    "A messy start is still a start.",
+    "The version of you five minutes from now will thank you.",
+    "Nobody regrets the workout, the page, the email — once it's done.",
+    "It doesn't have to be big. It just has to happen.",
+    "Discomfort now is quieter than regret later.",
+    "You're not behind. You're just starting from here.",
+    "One honest attempt beats ten perfect plans.",
+    "The lamp doesn't need a bonfire. Just keep feeding the wick.",
+    "Doing it scared still counts as doing it.",
+    "You've done hard days before. This is one task.",
+    "The task in front of you is the only one that matters right now."
+  ];
+
+  const DEFAULT_VIDEOS = [
+    { title: "Inside the mind of a master procrastinator — Tim Urban (TED)", url: "https://www.youtube.com/watch?v=arj7oStGLkU" },
+    { title: "\"Just Do It\" — Shia LaBeouf", url: "https://www.youtube.com/watch?v=Gir2XWzp3N0" },
+    { title: "Steve Jobs — Stanford Commencement Address", url: "https://www.youtube.com/watch?v=UF8uR6Z6KLc" }
+  ];
+
+  const KEY = "keep-pushing-progress";
+  const todayStr = () => new Date().toISOString().slice(0, 10);
+  const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const fmtTime = (secs) => {
+    const m = Math.floor(secs / 60).toString().padStart(2, "0");
+    const s = (secs % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
+  const app = document.getElementById("app");
+  let saved = null;
+  let session = null;
+  let timerHandle = null;
+  let activeTab = "today";
+  let scheduleView = null;
+  let lastRenderOpts = {};
+
+  // ============================================================
+  // CLOUD SYNC (Firebase) — fill in your own project's config below.
+  // 1. Create a free project at https://console.firebase.google.com
+  // 2. Add a Web App to it, copy the config object it gives you into
+  //    FIREBASE_CONFIG below (replace the "YOUR_..." placeholders).
+  // 3. In the Firebase console, enable Authentication → Sign-in method
+  //    → Email/Password (and Google, if you want that button to work).
+  // 4. Enable Firestore Database (production mode is fine).
+  // 5. In Firestore → Rules, use:
+  //      rules_version = '2';
+  //      service cloud.firestore {
+  //        match /databases/{database}/documents {
+  //          match /users/{userId} {
+  //            allow read, write: if request.auth != null && request.auth.uid == userId;
+  //          }
+  //        }
+  //      }
+  // 6. In Authentication → Settings → Authorized domains, add the domain
+  //    where you host this file (e.g. yourname.github.io).
+  // Until you fill this in, the app keeps working exactly as before —
+  // it just stays local to this device (no Account tab features).
+  // ============================================================
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyAj3huJbTieHBl2VYXGgmZKGHdp5mxtjJw",
+    authDomain: "keep-pushing12.firebaseapp.com",
+    projectId: "keep-pushing12",
+    storageBucket: "keep-pushing12.firebasestorage.app",
+    messagingSenderId: "1042377900145",
+    appId: "1:1042377900145:web:8ff35f36c84694b8c69bd0"
+  };
+  const CLOUD_CONFIGURED = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf("YOUR_") !== 0);
+
+  let AuthLib = null, FsLib = null, fbAuth = null, fbDb = null, fbUser = null;
+  let cloudStatus = CLOUD_CONFIGURED ? "loading" : "unconfigured"; // loading|signed-out|syncing|synced|conflict|error
+  let cloudError = "";
+  let pendingCloudConflict = null;
+  let cloudSaveTimer = null;
+
+  function rerenderGlobal() { render(lastRenderOpts); }
+
+  async function initCloud() {
+    if (!CLOUD_CONFIGURED) return;
+    try {
+      const [appMod, authMod, fsMod] = await Promise.all([
+        import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
+        import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"),
+        import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js")
+      ]);
+      AuthLib = authMod; FsLib = fsMod;
+      const fbApp = appMod.initializeApp(FIREBASE_CONFIG);
+      fbAuth = AuthLib.getAuth(fbApp);
+      fbDb = FsLib.getFirestore(fbApp);
+      AuthLib.onAuthStateChanged(fbAuth, async (user) => {
+        fbUser = user;
+        if (user) {
+          await handleSignedIn(user);
+        } else {
+          cloudStatus = "signed-out";
+        }
+        rerenderGlobal();
+      });
+    } catch (e) {
+      console.error("Cloud sync failed to load", e);
+      cloudStatus = "error";
+      cloudError = "Couldn't load cloud sync. Check your connection.";
+      rerenderGlobal();
+    }
+  }
+
+  async function handleSignedIn(user) {
+    cloudStatus = "syncing";
+    try {
+      const ref = FsLib.doc(fbDb, "users", user.uid);
+      const snap = await FsLib.getDoc(ref);
+      const hasLocalProgress = !!(saved && (saved.totalCompleted > 0 || (saved.history && saved.history.length)));
+      if (snap.exists()) {
+        const cloudData = JSON.parse(snap.data().payload);
+        const differs = JSON.stringify(cloudData) !== JSON.stringify(saved);
+        if (hasLocalProgress && differs) {
+          pendingCloudConflict = { cloud: cloudData };
+          cloudStatus = "conflict";
+        } else {
+          saved = cloudData;
+          try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+          cloudStatus = "synced";
+        }
+      } else {
+        await pushToCloud();
+      }
+    } catch (e) {
+      console.error(e);
+      cloudStatus = "error";
+      cloudError = "Sync failed.";
+    }
+  }
+
+  async function pushToCloud() {
+    if (!fbUser || !fbDb) return;
+    try {
+      await FsLib.setDoc(FsLib.doc(fbDb, "users", fbUser.uid), { payload: JSON.stringify(saved), updatedAt: Date.now() });
+      cloudStatus = "synced";
+    } catch (e) {
+      console.error(e);
+      cloudStatus = "error";
+      cloudError = "Couldn't save to cloud.";
+    }
+  }
+
+  function scheduleCloudSave() {
+    if (!fbUser) return;
+    cloudStatus = "syncing";
+    clearTimeout(cloudSaveTimer);
+    cloudSaveTimer = setTimeout(() => { pushToCloud().then(rerenderGlobal); }, 1200);
+  }
+
+  function friendlyAuthError(e) {
+    const code = (e && e.code) || "";
+    if (code.includes("email-already-in-use")) return "That email already has an account — try signing in instead.";
+    if (code.includes("wrong-password") || code.includes("invalid-credential")) return "Incorrect email or password.";
+    if (code.includes("weak-password")) return "Password should be at least 6 characters.";
+    if (code.includes("user-not-found")) return "No account found with that email.";
+    if (code.includes("invalid-email")) return "That doesn't look like a valid email.";
+    if (code.includes("popup-closed-by-user")) return "";
+    return "Something went wrong. Please try again.";
+  }
+
+  async function cloudSignUp(email, pw) {
+    cloudError = "";
+    if (!email || !pw) { cloudError = "Enter an email and password."; rerenderGlobal(); return; }
+    try { await AuthLib.createUserWithEmailAndPassword(fbAuth, email, pw); }
+    catch (e) { cloudError = friendlyAuthError(e); rerenderGlobal(); }
+  }
+
+  async function cloudSignIn(email, pw) {
+    cloudError = "";
+    if (!email || !pw) { cloudError = "Enter an email and password."; rerenderGlobal(); return; }
+    try { await AuthLib.signInWithEmailAndPassword(fbAuth, email, pw); }
+    catch (e) { cloudError = friendlyAuthError(e); rerenderGlobal(); }
+  }
+
+  async function cloudSignInGoogle() {
+    cloudError = "";
+    try {
+      const provider = new AuthLib.GoogleAuthProvider();
+      await AuthLib.signInWithPopup(fbAuth, provider);
+    } catch (e) { cloudError = friendlyAuthError(e); rerenderGlobal(); }
+  }
+
+  async function cloudSignOut() {
+    if (AuthLib && fbAuth) await AuthLib.signOut(fbAuth);
+    fbUser = null;
+    cloudStatus = "signed-out";
+    rerenderGlobal();
+  }
+
+  function cloudStatusLabel() {
+    if (cloudStatus === "syncing") return "Syncing…";
+    if (cloudStatus === "synced") return "✓ Synced to cloud";
+    if (cloudStatus === "error") return cloudError || "Sync error";
+    return "";
+  }
+
+  function allTasks() {
+    return TASKS.concat(saved.customTasks || []);
+  }
+
+  function todaysMood() {
+    return (saved.moodLog || {})[todayStr()] || null;
+  }
+
+  function setTodaysMood(mood) {
+    saved.moodLog = saved.moodLog || {};
+    saved.moodLog[todayStr()] = mood;
+    try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+  }
+
+  function poolForMood() {
+    const pool = allTasks();
+    const mood = todaysMood();
+    if (mood === "rough") {
+      const easy = pool.filter(t => t.minutes <= 3);
+      return easy.length ? easy : pool;
+    }
+    if (mood === "okay") {
+      const moderate = pool.filter(t => t.minutes <= 15);
+      return moderate.length ? moderate : pool;
+    }
+    return pool;
+  }
+
+  function extractYouTubeId(url) {
+    const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+    return m ? m[1] : null;
+  }
+
+  function newTask() {
+    const pool = poolForMood();
+    const t = pool[Math.floor(Math.random() * pool.length)];
+    return {
+      text: t.text, minutes: t.minutes, secondsLeft: t.minutes * 60,
+      running: false, finished: false,
+      editingNote: false, monthOffset: 0, selectedDay: null,
+      newTaskText: "", newTaskMinutes: "", newVideoTitle: "", newVideoUrl: "",
+      playingVideo: null
+    };
+  }
+
+  // ---------- Signature: the lamp ----------
+  function renderLamp() {
+    const stage = Math.min(Math.floor(saved.totalCompleted / 5), 5);
+    const flameHeight = 10 + stage * 6;
+    const glowRadius = 30 + stage * 16;
+    const glowOpacity = 0.15 + stage * 0.12;
+
+    const captions = [
+      "The wick is waiting.",
+      "A small flame catches.",
+      "Steady enough to hold.",
+      "Burning warmer now.",
+      "A real, dependable light.",
+      "Bright enough to see far by."
+    ];
+
+    return `
+      <div class="lamp-wrap">
+        <svg width="140" height="150" viewBox="0 0 140 150">
+          <defs>
+            <radialGradient id="glow" cx="50%" cy="45%" r="50%">
+              <stop offset="0%" stop-color="var(--amber)" stop-opacity="${glowOpacity}"/>
+              <stop offset="100%" stop-color="var(--amber)" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="70" cy="70" r="${glowRadius}" fill="url(#glow)"/>
+          <path d="M 55 130 L 60 100 L 80 100 L 85 130 Z" fill="#3A4756"/>
+          <ellipse cx="70" cy="130" rx="22" ry="5" fill="#2A343F"/>
+          <path d="M 45 100 Q 70 90 95 100 L 90 78 Q 70 70 50 78 Z" fill="#4A5A6C"/>
+          <ellipse cx="70" cy="78" rx="20" ry="7" fill="#3A4756"/>
+          <ellipse cx="70" cy="76" rx="15" ry="5" fill="#1C242D"/>
+          ${stage > 0 ? `
+            <path d="M 70 ${76 - flameHeight} Q ${77} ${76 - flameHeight * 0.5} 70 76 Q ${63} ${76 - flameHeight * 0.5} 70 ${76 - flameHeight} Z"
+                  fill="var(--amber)"/>
+            <path d="M 70 ${76 - flameHeight * 0.6} Q ${73} ${76 - flameHeight * 0.3} 70 76 Q ${67} ${76 - flameHeight * 0.3} 70 ${76 - flameHeight * 0.6} Z"
+                  fill="#FCE2AE"/>
+          ` : `<circle cx="70" cy="74" r="2" fill="var(--ink-faint)"/>`}
+        </svg>
+        <div class="lamp-caption">${captions[stage]}</div>
+      </div>
+    `;
+  }
+
+  // ---------- Note ----------
+  function renderNote() {
+    if (session.editingNote) {
+      return `
+        <div class="note-card">
+          <textarea id="noteInput" class="note-input" placeholder="Something you want to keep remembering...">${saved.personalNote || ""}</textarea>
+          <button id="saveNoteBtn" style="margin-top:10px;">Save reminder</button>
+        </div>
+      `;
+    }
+    if (saved.personalNote) {
+      return `
+        <div class="note-card">
+          <div class="note-text">${saved.personalNote}</div>
+          <button id="editNoteBtn" class="link-btn" style="margin-top:8px; color:#5B4F33;">Edit</button>
+        </div>
+      `;
+    }
+    return `
+      <div class="note-card note-empty">
+        <button id="editNoteBtn" class="link-btn">+ Add something to keep remembering</button>
+      </div>
+    `;
+  }
+
+  // ---------- Task ----------
+  function renderTask() {
+    return `
+      <div class="task-card ${session.running ? "task-card-focus" : ""}">
+        <div class="task-label">${session.finished ? "Completed" : session.running ? "In progress" : "Your task"}</div>
+        <div class="task-text">${session.text}</div>
+        ${session.finished ? `
+          <div class="done-msg">✓ Nice work — that's done.</div>
+          <button id="nextBtn" style="margin-top:14px;">Get another task</button>
+        ` : session.running ? `
+          <div class="timer">${fmtTime(session.secondsLeft)}</div>
+          <button disabled>Stay with it — timer running</button>
+        ` : `
+          <div class="timer-hint">Takes about ${session.minutes} min${session.minutes === 1 ? "" : "s"}</div>
+          <button id="startBtn">Start task</button>
+          <button id="skipBtn" class="link-btn" style="margin-top:10px;">Skip, give me another</button>
+        `}
+      </div>
+    `;
+  }
+
+  function renderMoodCheck() {
+    const mood = todaysMood();
+    if (mood) return "";
+    return `
+      <div class="mood-card">
+        <div class="mood-label">How are you feeling right now?</div>
+        <div class="mood-btns">
+          <button class="mood-btn" data-mood="rough">😩 Rough</button>
+          <button class="mood-btn" data-mood="okay">🙂 Okay</button>
+          <button class="mood-btn" data-mood="good">💪 Good</button>
+        </div>
+        <div class="mood-hint">This just adjusts how big today's tasks are — no wrong answer.</div>
+      </div>
+    `;
+  }
+
+  // ---------- Whole-day schedule (weekday / weekend / holiday plans, any number of slots) ----------
+  function makeSlot(overrides) {
+    return Object.assign({
+      id: "s" + Math.random().toString(36).slice(2, 9),
+      label: "", time: "", text: "", minutes: "", remindAt: ""
+    }, overrides || {});
+  }
+
+  const DEFAULT_PLAN_TEMPLATES = {
+    weekday: [
+      { label: "Early Morning", time: "6–9 AM" },
+      { label: "Morning", time: "9 AM–12 PM" },
+      { label: "Midday", time: "12–2 PM" },
+      { label: "Afternoon", time: "2–5 PM" },
+      { label: "Evening", time: "5–8 PM" },
+      { label: "Night", time: "8–10 PM" }
+    ],
+    weekend: [
+      { label: "Early Morning", time: "7–10 AM" },
+      { label: "Morning", time: "10 AM–1 PM" },
+      { label: "Afternoon", time: "1–5 PM" },
+      { label: "Evening", time: "5–9 PM" }
+    ],
+    holiday: [
+      { label: "Slow start", time: "Morning" },
+      { label: "Something for you", time: "Midday" },
+      { label: "One small task", time: "Afternoon" },
+      { label: "Rest & recharge", time: "Evening" }
+    ]
+  };
+
+  const PLAN_LABELS = { weekday: "Weekday", weekend: "Weekend", holiday: "Holiday" };
+
+  function dayType(d) {
+    const iso = d.toISOString().slice(0, 10);
+    if ((saved.holidayDates || {})[iso]) return "holiday";
+    const day = d.getDay();
+    return (day === 0 || day === 6) ? "weekend" : "weekday";
+  }
+
+  function getSchedulePlan(type) {
+    saved.schedulePlan = saved.schedulePlan || {};
+    const existing = saved.schedulePlan[type];
+    if (Array.isArray(existing)) return existing;
+
+    // migrate the old fixed-key format if present, otherwise seed sensible defaults
+    let slots;
+    if (existing && typeof existing === "object") {
+      slots = Object.keys(existing).map(k => makeSlot({
+        label: k, time: existing[k].time, text: existing[k].text, minutes: existing[k].minutes
+      }));
+    } else {
+      slots = (DEFAULT_PLAN_TEMPLATES[type] || DEFAULT_PLAN_TEMPLATES.weekday).map(s => makeSlot(s));
+    }
+    saved.schedulePlan[type] = slots;
+    persist();
+    return slots;
+  }
+
+  function getTodayDoneMap() {
+    saved.scheduleLog = saved.scheduleLog || {};
+    const today = todayStr();
+    if (!saved.scheduleLog[today]) saved.scheduleLog[today] = {};
+    return saved.scheduleLog[today];
+  }
+
+  function isTodayMarkedHoliday() {
+    return !!((saved.holidayDates || {})[todayStr()]);
+  }
+
+  function toggleTodayHoliday() {
+    saved.holidayDates = saved.holidayDates || {};
+    const today = todayStr();
+    if (saved.holidayDates[today]) delete saved.holidayDates[today];
+    else saved.holidayDates[today] = true;
+    persist();
+  }
+
+  function renderSchedule() {
+    const actualType = dayType(new Date());
+    const viewType = scheduleView || actualType;
+    const isToday = viewType === actualType;
+    const plan = getSchedulePlan(viewType);
+    const doneMap = isToday ? getTodayDoneMap() : null;
+    const doneCount = isToday ? plan.filter(s => doneMap[s.id]).length : 0;
+
+    return `
+      <div class="sched-toggle">
+        ${["weekday", "weekend", "holiday"].map(t => `
+          <button class="sched-toggle-btn ${viewType === t ? "active" : ""}" data-view="${t}">${PLAN_LABELS[t]}</button>
+        `).join("")}
+      </div>
+      <div class="schedule-intro">
+        ${isToday
+          ? `Today's plan (${PLAN_LABELS[viewType].toLowerCase()}). ${doneCount}/${plan.length} done so far.`
+          : `Editing your ${PLAN_LABELS[viewType].toLowerCase()} plan ahead of time — this doesn't apply until a ${PLAN_LABELS[viewType].toLowerCase()} day.`}
+      </div>
+      <button id="toggleHolidayBtn" class="link-btn" style="margin-bottom:14px;">
+        ${isTodayMarkedHoliday() ? "↩ Unmark today as a holiday" : "🎉 Mark today as a holiday"}
+      </button>
+      ${plan.map(slot => {
+        const done = isToday && doneMap[slot.id];
+        if (done) {
+          return `
+            <div class="sched-block sched-done">
+              <div class="sched-time">${slot.label || "Slot"} <span class="sched-timerange">${slot.time}</span></div>
+              <div class="sched-task">${slot.text}</div>
+              <div class="done-msg">✓ Done</div>
+            </div>
+          `;
+        }
+        return `
+          <div class="sched-block">
+            <div class="sched-time-row">
+              <input type="text" class="note-input sched-label-input" data-id="${slot.id}" data-view="${viewType}" placeholder="Label" value="${slot.label || ""}" style="min-height:auto; padding:6px 8px; width:48%;" />
+              <input type="text" class="note-input sched-time-input" data-id="${slot.id}" data-view="${viewType}" placeholder="Time" value="${slot.time || ""}" style="min-height:auto; padding:6px 8px; width:48%; text-align:right;" />
+            </div>
+            <input type="text" class="note-input sched-text-input" data-id="${slot.id}" data-view="${viewType}" placeholder="What will you do?" value="${slot.text || ""}" style="min-height:auto; padding:9px 10px; margin-top:8px; margin-bottom:6px;" />
+            <div class="sched-time-row">
+              <input type="number" class="note-input sched-mins-input" data-id="${slot.id}" data-view="${viewType}" placeholder="Minutes (optional)" value="${slot.minutes || ""}" style="min-height:auto; padding:9px 10px; width:48%;" />
+              <label style="width:48%; display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-soft);">
+                Remind at
+                <input type="time" class="note-input sched-remind-input" data-id="${slot.id}" data-view="${viewType}" value="${slot.remindAt || ""}" style="min-height:auto; padding:6px 8px; flex:1;" />
+              </label>
+            </div>
+            <div style="height:8px;"></div>
+            <div style="display:flex; gap:8px;">
+              <button class="sched-save-btn" data-id="${slot.id}" data-view="${viewType}">Save</button>
+              <button class="sched-remove-btn link-btn" data-id="${slot.id}" data-view="${viewType}" style="width:auto; color:var(--rust); flex:0 0 auto;">Remove</button>
+            </div>
+            ${isToday && slot.text ? `<button class="sched-done-btn" data-id="${slot.id}" style="margin-top:8px;">Mark done</button>` : ""}
+          </div>
+        `;
+      }).join("")}
+      <button id="addSlotBtn" data-view="${viewType}" style="margin-top:4px;">+ Add time slot</button>
+    `;
+  }
+
+
+  function renderCalendar() {
+    const now = new Date();
+    const viewDate = new Date(now.getFullYear(), now.getMonth() + session.monthOffset, 1);
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth();
+    const monthLabel = viewDate.toLocaleString(undefined, { month: "long", year: "numeric" });
+
+    const completedDays = new Set((saved.history || []).map(e => e.date));
+    const firstWeekday = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayIso = todayStr();
+
+    let cells = "";
+    for (let i = 0; i < firstWeekday; i++) cells += `<div class="cal-cell cal-empty"></div>`;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const done = completedDays.has(iso);
+      const isToday = iso === todayIso;
+      const isSelected = iso === session.selectedDay;
+      cells += `<div class="cal-cell ${done ? "cal-done" : ""} ${isToday ? "cal-today" : ""} ${isSelected ? "cal-selected" : ""}" data-date="${iso}">${d}</div>`;
+    }
+
+    return `
+      <div class="panel">
+        <div class="cal-header">
+          <button id="prevMonthBtn" class="cal-nav">‹</button>
+          <div class="cal-month">${monthLabel}</div>
+          <button id="nextMonthBtn" class="cal-nav">›</button>
+        </div>
+        <div class="cal-grid cal-weekdays">
+          <div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+        </div>
+        <div class="cal-grid" id="calGrid">${cells}</div>
+      </div>
+      ${renderDayDetail()}
+    `;
+  }
+
+  function renderDayDetail() {
+    if (!session.selectedDay) return "";
+    const entries = (saved.history || []).filter(e => e.date === session.selectedDay);
+    const label = new Date(session.selectedDay + "T00:00:00").toLocaleDateString(undefined, {
+      weekday: "long", month: "long", day: "numeric"
+    });
+    const journalEntry = (saved.journal || {})[session.selectedDay];
+    const journalHtml = journalEntry ? `
+      <div class="day-detail-journal">
+        <div class="sched-time">Journal entry</div>
+        <div class="note-text" style="color:var(--ink-light); font-size:14px;">${journalEntry}</div>
+      </div>
+    ` : "";
+
+    if (entries.length === 0) {
+      return `
+        <div class="day-detail">
+          <div class="day-detail-label">${label}</div>
+          <div class="day-detail-empty">No tasks completed this day.</div>
+          ${journalHtml}
+        </div>
+      `;
+    }
+    return `
+      <div class="day-detail">
+        <div class="day-detail-label">${label} — ${entries.length} completed</div>
+        ${entries.map(e => `
+          <div class="report-row">
+            <span class="report-time">${e.time}</span>
+            <span class="report-task">${e.text}</span>
+            <span class="report-mins">${e.minutes}m</span>
+          </div>
+        `).join("")}
+        ${journalHtml}
+      </div>
+    `;
+  }
+
+  function renderSummary() {
+    const history = saved.history || [];
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - mondayOffset);
+    weekStart.setHours(0, 0, 0, 0);
+    const monthPrefix = todayStr().slice(0, 7);
+
+    const thisWeek = history.filter(e => new Date(e.date + "T00:00:00") >= weekStart);
+    const thisMonth = history.filter(e => e.date.startsWith(monthPrefix));
+    const weekMins = thisWeek.reduce((sum, e) => sum + e.minutes, 0);
+    const monthMins = thisMonth.reduce((sum, e) => sum + e.minutes, 0);
+
+    return `
+      <div class="stats-row" style="margin-bottom:14px;">
+        <div class="stat"><div class="num">${thisWeek.length}</div><div class="label">This week (${weekMins}m)</div></div>
+        <div class="stat"><div class="num">${thisMonth.length}</div><div class="label">This month (${monthMins}m)</div></div>
+      </div>
+    `;
+  }
+
+  function renderReportList() {
+    const history = saved.history || [];
+    if (history.length === 0) {
+      return `<div class="panel" style="margin-top:14px;"><div class="day-detail-empty">No tasks completed yet.</div></div>`;
+    }
+    const byDay = {};
+    history.forEach(e => {
+      byDay[e.date] = byDay[e.date] || [];
+      byDay[e.date].push(e);
+    });
+    const days = Object.keys(byDay).sort().reverse();
+    const daySections = days.map(day => `
+      <div class="report-day">
+        <div class="report-day-label">${day}</div>
+        ${byDay[day].map(e => `
+          <div class="report-row">
+            <span class="report-time">${e.time}</span>
+            <span class="report-task">${e.text}</span>
+            <span class="report-mins">${e.minutes}m</span>
+          </div>
+        `).join("")}
+      </div>
+    `).join("");
+    return `
+      <div class="panel" style="margin-top:14px;">
+        <div class="panel-title">${history.length} task${history.length === 1 ? "" : "s"} completed in total</div>
+        ${daySections}
+      </div>
+    `;
+  }
+
+  // ---------- Journal ----------
+  function renderJournal() {
+    const today = todayStr();
+    const journal = saved.journal || {};
+    const todayEntry = journal[today] || "";
+    const pastDates = Object.keys(journal).filter(d => d !== today).sort().reverse();
+
+    const pastEntries = pastDates.length === 0 ? "" : `
+      <div class="panel-title" style="margin-top:16px;">Past entries</div>
+      ${pastDates.map(d => `
+        <div class="journal-past-entry">
+          <div class="report-day-label">${d}</div>
+          <div class="note-text" style="color:var(--ink-light); font-size:14px;">${journal[d]}</div>
+        </div>
+      `).join("")}
+    `;
+
+    return `
+      <div class="panel">
+        <div class="panel-title">Today's journal</div>
+        <textarea id="journalInput" class="note-input" style="min-height:100px; background:var(--paper); color:#3A3325;" placeholder="Write anything — how today went, what you're feeling, what you want to remember...">${todayEntry}</textarea>
+        <button id="saveJournalBtn" style="margin-top:10px;">Save entry</button>
+        ${session.journalSaved ? `<div class="done-msg" style="margin-top:8px;">✓ Saved — it's stored under today's date, and you'll see it here and on today's calendar day.</div>` : ""}
+        ${pastEntries}
+      </div>
+    `;
+  }
+
+  // ---------- Videos ----------
+  function renderVideoCard(v, removeIdx) {
+    const vid = extractYouTubeId(v.url);
+    const key = vid || v.url;
+    const isPlaying = session.playingVideo === key;
+
+    if (isPlaying && vid) {
+      return `
+        <div class="video-card video-card-playing">
+          <div class="video-embed-wrap">
+            <iframe src="https://www.youtube-nocookie.com/embed/${vid}?autoplay=1&rel=0"
+              title="${v.title || "video"}" frameborder="0"
+              allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          <div class="video-title">${v.title || v.url}
+            <button class="link-btn close-video-btn" data-vid="${key}" style="padding:2px 0;">Close</button>
+          </div>
+        </div>
+      `;
+    }
+
+    const thumb = vid
+      ? `<img src="https://img.youtube.com/vi/${vid}/maxresdefault.jpg" class="video-thumb" loading="lazy"
+           onerror="this.onerror=null; this.src='https://img.youtube.com/vi/${vid}/hqdefault.jpg';" />`
+      : `<div class="video-thumb video-thumb-fallback">▶</div>`;
+    return `
+      <div class="video-card" data-vid="${key}">
+        <div class="video-thumb-wrap">
+          ${thumb}
+          <div class="video-play-badge">▶</div>
+          ${removeIdx !== null ? `<button class="remove-video-btn" data-idx="${removeIdx}">✕</button>` : ""}
+        </div>
+        <div class="video-title">${v.title || v.url}</div>
+      </div>
+    `;
+  }
+
+  function renderVideos() {
+    const custom = saved.videoLinks || [];
+    const customGrid = custom.length === 0
+      ? `<div class="day-detail-empty">No videos saved yet.</div>`
+      : `<div class="video-grid">${custom.map((v, i) => renderVideoCard(v, i)).join("")}</div>`;
+
+    return `
+      <div class="panel">
+        <div class="panel-title">A little push, whenever you need it</div>
+        <div class="video-grid">${DEFAULT_VIDEOS.map(v => renderVideoCard(v, null)).join("")}</div>
+      </div>
+      <div class="panel" style="margin-top:14px;">
+        <div class="panel-title">Videos to remember</div>
+        ${customGrid}
+        <div class="form-row">
+          <input type="text" id="newVideoTitle" placeholder="Title (optional)" value="${session.newVideoTitle || ""}" />
+          <input type="text" id="newVideoUrl" placeholder="YouTube link" value="${session.newVideoUrl || ""}" />
+          <button id="addVideoBtn" style="margin-top:10px;">Save video</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // ---------- Manage tasks ----------
+  function renderManage() {
+    const custom = saved.customTasks || [];
+    const rows = custom.length === 0
+      ? `<div class="day-detail-empty">No custom tasks yet — add one below.</div>`
+      : custom.map((t, i) => `
+          <div class="task-row">
+            <span class="report-task">${t.text}</span>
+            <span class="report-mins">${t.minutes}m</span>
+            <button class="remove-task-btn" data-idx="${i}">✕</button>
+          </div>
+        `).join("");
+
+    const permLabel = notifPermission === "granted" ? "Enabled ✓"
+      : notifPermission === "denied" ? "Blocked (check your browser's site settings)"
+      : notifPermission === "unsupported" ? "Not supported in this browser"
+      : "Not enabled yet";
+
+    return `
+      <div class="panel">
+        <div class="panel-title">Reminders</div>
+        <div class="day-detail-empty" style="margin-bottom:10px;">
+          Status: ${permLabel}. While this tab is open (foreground or background), you'll get a nudge if you haven't
+          started by midday, a streak-at-risk alert in the evening, an alert when a focus timer finishes, and alerts
+          for any schedule slot you've set a time on.
+        </div>
+        ${notifPermission !== "granted" && notifPermission !== "unsupported" ? `<button id="enableNotifsBtn">Enable browser notifications</button>` : ""}
+      </div>
+      <div class="panel" style="margin-top:14px;">
+        <div class="panel-title">Your custom tasks</div>
+        ${rows}
+        <div class="form-row">
+          <input type="text" id="newTaskText" placeholder="Task description" value="${session.newTaskText || ""}" />
+          <input type="number" id="newTaskMinutes" placeholder="Minutes" value="${session.newTaskMinutes || ""}" />
+          <button id="addTaskBtn" style="margin-top:10px;">Add task</button>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:14px;">
+        <div class="panel-title">Danger zone</div>
+        <div class="day-detail-empty" style="margin-bottom:10px;">Clears your streak, history, tasks, journal, videos, and reminder from this browser. Can't be undone.</div>
+        <button id="resetBtn" class="danger-btn">Reset all progress</button>
+      </div>
+    `;
+  }
+
+  // ---------- Main render ----------
+  const TABS = [
+    { id: "today", label: "Today", icon: "☀" },
+    { id: "schedule", label: "Schedule", icon: "⏰" },
+    { id: "calendar", label: "Calendar", icon: "▦" },
+    { id: "stats", label: "Stats", icon: "📈" },
+    { id: "journal", label: "Journal", icon: "✎" },
+    { id: "videos", label: "Videos", icon: "▶" },
+    { id: "tasks", label: "Tasks", icon: "☰" },
+    { id: "account", label: "Account", icon: "☁" }
+  ];
+
+  // ---------- Stats ----------
+  function weekStartIso() {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    return startOfWeek.toISOString().slice(0, 10);
+  }
+  function last14DaysCounts() {
+    const days = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86400000);
+      const iso = d.toISOString().slice(0, 10);
+      const count = (saved.history || []).filter(h => h.date === iso).length;
+      days.push({ date: iso, count });
+    }
+    return days;
+  }
+  function weekCompletions() {
+    const startIso = weekStartIso();
+    return (saved.history || []).filter(h => h.date >= startIso).length;
+  }
+  function weekMinutes() {
+    const startIso = weekStartIso();
+    return (saved.history || []).filter(h => h.date >= startIso).reduce((s, h) => s + (h.minutes || 0), 0);
+  }
+  function activeDaysThisWeek() {
+    const startIso = weekStartIso();
+    const set = new Set((saved.history || []).filter(h => h.date >= startIso).map(h => h.date));
+    return set.size;
+  }
+  function drawStatsChart() {
+    const canvas = document.getElementById("statsChart");
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    const cssWidth = canvas.clientWidth || 600;
+    const cssHeight = canvas.clientHeight || 160;
+    canvas.width = Math.max(1, Math.round(cssWidth * dpr));
+    canvas.height = Math.max(1, Math.round(cssHeight * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+    const data = last14DaysCounts();
+    const max = Math.max(1, ...data.map(d => d.count));
+    const barW = cssWidth / data.length;
+    data.forEach((d, i) => {
+      const barH = (d.count / max) * (cssHeight - 24);
+      ctx.fillStyle = d.count > 0 ? "#FF8A3D" : "#3A3050";
+      ctx.fillRect(i * barW + barW * 0.15, cssHeight - barH - 18, barW * 0.7, barH || 1);
+      ctx.fillStyle = "#A79BBF";
+      ctx.font = "9px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(d.date.slice(5).replace("-", "/"), i * barW + barW / 2, cssHeight - 6);
+    });
+  }
+  function renderStats() {
+    return `
+      <div class="panel">
+        <div class="panel-title">Last 14 days</div>
+        <canvas id="statsChart" style="width:100%; height:160px; display:block;"></canvas>
+      </div>
+      <div class="panel">
+        <div class="panel-title">This week</div>
+        <div class="stats-row">
+          <div class="stat"><div class="num">${weekCompletions()}</div><div class="label">Tasks done</div></div>
+          <div class="stat"><div class="num">${weekMinutes()}</div><div class="label">Minutes</div></div>
+          <div class="stat"><div class="num">${activeDaysThisWeek()}</div><div class="label">Active days</div></div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ---------- Account / cloud sync ----------
+  function renderAccount() {
+    if (!CLOUD_CONFIGURED) {
+      return `
+        <div class="panel">
+          <div class="panel-title">Cloud sync</div>
+          <div class="note-text">Cloud sync isn't set up yet. Add your Firebase project's config to FIREBASE_CONFIG near the top of the script to enable accounts and cross-device sync. Instructions are in a comment right above it.</div>
+        </div>
+      `;
+    }
+    if (pendingCloudConflict) {
+      return `
+        <div class="panel">
+          <div class="panel-title">Which progress do you want to keep?</div>
+          <div class="note-text" style="margin-bottom:14px;">This device has progress saved locally, and your account already has different progress saved in the cloud. Pick one — the other will be replaced.</div>
+          <button id="useCloudBtn">Use my cloud progress</button>
+          <button id="keepLocalBtn" class="link-btn" style="margin-top:10px;">Keep this device's progress instead</button>
+        </div>
+      `;
+    }
+    if (fbUser) {
+      return `
+        <div class="panel">
+          <div class="panel-title">Signed in</div>
+          <div class="note-text">${fbUser.email || "Google account"}</div>
+          <div class="mood-hint" style="margin:10px 0;">${cloudStatusLabel()}</div>
+          <button id="signOutBtn" class="danger-btn">Sign out</button>
+        </div>
+      `;
+    }
+    return `
+      <div class="panel">
+        <div class="panel-title">Sign in to sync across devices</div>
+        ${cloudError ? `<div class="mood-hint" style="color:var(--rust); margin-bottom:8px;">${cloudError}</div>` : ""}
+        <div class="form-row"><input id="authEmail" type="email" placeholder="Email" value="${session.authEmail || ""}"></div>
+        <div class="form-row"><input id="authPassword" type="password" placeholder="Password (6+ characters)"></div>
+        <button id="signInBtn" style="margin-top:12px;">Sign in</button>
+        <button id="signUpBtn" class="link-btn" style="margin-top:8px;">Create an account instead</button>
+        <div class="divider-thin"></div>
+        <button id="googleSignInBtn">Continue with Google</button>
+        <div class="mood-hint" style="margin-top:12px;">Your progress stays local on this device until you sign in.</div>
+      </div>
+    `;
+  }
+
+  function renderTabContent(opts) {
+    switch (activeTab) {
+      case "calendar":
+        return `
+          <div class="tab-grid">
+            <div>${renderSummary()}${renderCalendar()}</div>
+            <div>${renderReportList()}</div>
+          </div>
+        `;
+      case "schedule":
+        return renderSchedule();
+      case "stats":
+        return renderStats();
+      case "journal":
+        return renderJournal();
+      case "videos":
+        return renderVideos();
+      case "tasks":
+        return renderManage();
+      case "account":
+        return renderAccount();
+      default:
+        return `
+          ${renderMoodCheck()}
+          <div class="tab-grid">
+            <div>${renderLamp()}${renderNote()}</div>
+            <div>
+              <div class="quote-card">"${opts.quote || pick(QUOTES)}"</div>
+              <button id="refreshQuoteBtn" class="link-btn" style="margin-top:6px;">↻ Another quote</button>
+              <div style="height:14px;"></div>
+              ${renderTask()}
+            </div>
+          </div>
+        `;
+    }
+  }
+
+  function render(opts) {
+    opts = opts || {};
+    lastRenderOpts = opts;
+    const today = todayStr();
+
+    app.innerHTML = `
+      <div class="app-shell">
+        <div class="app-tabbar">
+          ${TABS.map(t => `
+            <button class="tab-btn ${activeTab === t.id ? "active" : ""}" data-tab="${t.id}">
+              <span class="tab-icon">${t.icon}</span>${t.label}
+            </button>
+          `).join("")}
+        </div>
+        <div class="app-body">
+          <div class="app-header">
+            <div class="eyebrow">Day ${daysBetween(saved.startDate, today) + 1} since you started</div>
+            <h1 class="title">Keep Pushing</h1>
+            <div class="stats-row">
+              <div class="stat"><div class="num">${saved.streak}</div><div class="label">Streak</div></div>
+              <div class="stat"><div class="num">${saved.bestStreak}</div><div class="label">Best</div></div>
+              <div class="stat"><div class="num">${saved.totalCompleted}</div><div class="label">Total</div></div>
+            </div>
+          </div>
+          <div class="app-main">${renderTabContent(opts)}</div>
+        </div>
+      </div>
+    `;
+
+    wireEvents(opts);
+    if (activeTab === "stats") requestAnimationFrame(drawStatsChart);
+  }
+
+  function wireEvents(opts) {
+    const q = (id) => document.getElementById(id);
+    const rerender = () => render({ quote: opts.quote });
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeTab = btn.dataset.tab;
+        rerender();
+      });
+    });
+
+    document.querySelectorAll(".mood-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        setTodaysMood(btn.dataset.mood);
+        session = newTask();
+        rerender();
+      });
+    });
+
+    document.querySelectorAll(".sched-toggle-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        scheduleView = btn.dataset.view;
+        rerender();
+      });
+    });
+
+    const toggleHolidayBtn = q("toggleHolidayBtn");
+    if (toggleHolidayBtn) toggleHolidayBtn.addEventListener("click", () => {
+      toggleTodayHoliday();
+      rerender();
+    });
+
+    document.querySelectorAll(".sched-done-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const actualType = dayType(new Date());
+        const plan = getSchedulePlan(actualType);
+        const slot = plan.find(s => s.id === id);
+        if (!slot) return;
+        const doneMap = getTodayDoneMap();
+        doneMap[id] = true;
+        logCompletion(slot.text, parseInt(slot.minutes, 10) || 0);
+        persist();
+        rerender();
+      });
+    });
+
+    document.querySelectorAll(".sched-save-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const view = btn.dataset.view;
+        const plan = getSchedulePlan(view);
+        const slot = plan.find(s => s.id === id);
+        if (!slot) return;
+        const labelInput = document.querySelector(`.sched-label-input[data-id="${id}"][data-view="${view}"]`);
+        const timeInput = document.querySelector(`.sched-time-input[data-id="${id}"][data-view="${view}"]`);
+        const textInput = document.querySelector(`.sched-text-input[data-id="${id}"][data-view="${view}"]`);
+        const minsInput = document.querySelector(`.sched-mins-input[data-id="${id}"][data-view="${view}"]`);
+        const remindInput = document.querySelector(`.sched-remind-input[data-id="${id}"][data-view="${view}"]`);
+        slot.label = labelInput ? labelInput.value.trim() : slot.label;
+        slot.time = timeInput ? timeInput.value.trim() : slot.time;
+        slot.text = textInput ? textInput.value.trim() : "";
+        slot.minutes = minsInput ? minsInput.value.trim() : "";
+        slot.remindAt = remindInput ? remindInput.value : "";
+        if (slot.remindAt) getNotifyFlags().slotsFired[slot.id] = false;
+        persist();
+        rerender();
+      });
+    });
+
+    document.querySelectorAll(".sched-remove-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const view = btn.dataset.view;
+        const plan = getSchedulePlan(view);
+        const idx = plan.findIndex(s => s.id === id);
+        if (idx !== -1) plan.splice(idx, 1);
+        persist();
+        rerender();
+      });
+    });
+
+    const addSlotBtn = q("addSlotBtn");
+    if (addSlotBtn) addSlotBtn.addEventListener("click", () => {
+      const view = addSlotBtn.dataset.view;
+      const plan = getSchedulePlan(view);
+      plan.push(makeSlot({ label: "New slot" }));
+      persist();
+      rerender();
+    });
+
+    const startBtn = q("startBtn");
+    if (startBtn) startBtn.addEventListener("click", startTimer);
+
+    const skipBtn = q("skipBtn");
+    if (skipBtn) skipBtn.addEventListener("click", () => {
+      session = newTask();
+      render({ quote: opts.quote });
+    });
+
+    const nextBtn = q("nextBtn");
+    if (nextBtn) nextBtn.addEventListener("click", () => {
+      session = newTask();
+      render({ quote: pick(QUOTES) });
+    });
+
+    const refreshQuoteBtn = q("refreshQuoteBtn");
+    if (refreshQuoteBtn) refreshQuoteBtn.addEventListener("click", () => {
+      render({ quote: pick(QUOTES) });
+    });
+
+    const editNoteBtn = q("editNoteBtn");
+    if (editNoteBtn) editNoteBtn.addEventListener("click", () => {
+      session.editingNote = true;
+      rerender();
+    });
+
+    const saveNoteBtn = q("saveNoteBtn");
+    if (saveNoteBtn) saveNoteBtn.addEventListener("click", () => {
+      saved.personalNote = q("noteInput").value.trim();
+      session.editingNote = false;
+      persist();
+      rerender();
+    });
+
+    const prevMonthBtn = q("prevMonthBtn");
+    if (prevMonthBtn) prevMonthBtn.addEventListener("click", () => { session.monthOffset -= 1; rerender(); });
+    const nextMonthBtn = q("nextMonthBtn");
+    if (nextMonthBtn) nextMonthBtn.addEventListener("click", () => { session.monthOffset += 1; rerender(); });
+
+    const calGrid = q("calGrid");
+    if (calGrid) calGrid.addEventListener("click", (e) => {
+      const cell = e.target.closest(".cal-cell");
+      if (!cell || !cell.dataset.date) return;
+      session.selectedDay = session.selectedDay === cell.dataset.date ? null : cell.dataset.date;
+      rerender();
+    });
+
+    const saveJournalBtn = q("saveJournalBtn");
+    if (saveJournalBtn) saveJournalBtn.addEventListener("click", () => {
+      const today = todayStr();
+      saved.journal = saved.journal || {};
+      const text = q("journalInput").value.trim();
+      if (text) saved.journal[today] = text;
+      else delete saved.journal[today];
+      persist();
+      session.journalSaved = true;
+      rerender();
+    });
+
+    const journalInput = q("journalInput");
+    if (journalInput) journalInput.addEventListener("input", () => {
+      if (session.journalSaved) session.journalSaved = false;
+    });
+
+    const addVideoBtn = q("addVideoBtn");
+    if (addVideoBtn) addVideoBtn.addEventListener("click", () => {
+      const titleEl = q("newVideoTitle");
+      const urlEl = q("newVideoUrl");
+      const url = urlEl.value.trim();
+      if (!url) {
+        session.newVideoTitle = titleEl.value;
+        session.newVideoUrl = url;
+        rerender();
+        return;
+      }
+      saved.videoLinks = saved.videoLinks || [];
+      saved.videoLinks.push({ title: titleEl.value.trim(), url });
+      persist();
+      session.newVideoTitle = "";
+      session.newVideoUrl = "";
+      rerender();
+    });
+
+    document.querySelectorAll(".remove-video-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        saved.videoLinks.splice(parseInt(btn.dataset.idx, 10), 1);
+        persist();
+        rerender();
+      });
+    });
+
+    document.querySelectorAll(".video-card:not(.video-card-playing)").forEach(card => {
+      card.addEventListener("click", () => {
+        session.playingVideo = card.dataset.vid || null;
+        rerender();
+      });
+    });
+
+    document.querySelectorAll(".close-video-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        session.playingVideo = null;
+        rerender();
+      });
+    });
+
+    const addTaskBtn = q("addTaskBtn");
+    if (addTaskBtn) addTaskBtn.addEventListener("click", () => {
+      const textEl = q("newTaskText");
+      const minsEl = q("newTaskMinutes");
+      const text = textEl.value.trim();
+      const mins = parseInt(minsEl.value, 10);
+      if (!text || !mins || mins <= 0) {
+        session.newTaskText = text;
+        session.newTaskMinutes = minsEl.value;
+        rerender();
+        return;
+      }
+      saved.customTasks = saved.customTasks || [];
+      saved.customTasks.push({ text, minutes: mins });
+      persist();
+      session.newTaskText = "";
+      session.newTaskMinutes = "";
+      rerender();
+    });
+
+    document.querySelectorAll(".remove-task-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        saved.customTasks.splice(parseInt(btn.dataset.idx, 10), 1);
+        persist();
+        rerender();
+      });
+    });
+
+    const signInBtn = q("signInBtn");
+    if (signInBtn) signInBtn.addEventListener("click", () => {
+      session.authEmail = q("authEmail").value.trim();
+      cloudSignIn(session.authEmail, q("authPassword").value);
+    });
+    const signUpBtn = q("signUpBtn");
+    if (signUpBtn) signUpBtn.addEventListener("click", () => {
+      session.authEmail = q("authEmail").value.trim();
+      cloudSignUp(session.authEmail, q("authPassword").value);
+    });
+    const googleSignInBtn = q("googleSignInBtn");
+    if (googleSignInBtn) googleSignInBtn.addEventListener("click", cloudSignInGoogle);
+    const signOutBtn = q("signOutBtn");
+    if (signOutBtn) signOutBtn.addEventListener("click", cloudSignOut);
+    const useCloudBtn = q("useCloudBtn");
+    if (useCloudBtn) useCloudBtn.addEventListener("click", () => {
+      saved = pendingCloudConflict.cloud;
+      pendingCloudConflict = null;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+      cloudStatus = "synced";
+      session = newTask();
+      rerender();
+    });
+    const keepLocalBtn = q("keepLocalBtn");
+    if (keepLocalBtn) keepLocalBtn.addEventListener("click", () => {
+      pendingCloudConflict = null;
+      pushToCloud().then(rerenderGlobal);
+    });
+
+    const enableNotifsBtn = q("enableNotifsBtn");
+    if (enableNotifsBtn) enableNotifsBtn.addEventListener("click", requestNotifPermission);
+
+    const resetBtn = q("resetBtn");
+    if (resetBtn) resetBtn.addEventListener("click", () => {
+      if (resetBtn.dataset.confirming === "true") {
+        try { localStorage.removeItem(KEY); } catch (e) {}
+        const today = todayStr();
+        saved = { startDate: today, lastCompleted: null, streak: 0, bestStreak: 0, totalCompleted: 0, history: [], personalNote: "", customTasks: [], journal: {}, videoLinks: [], holidayDates: {} };
+        session = newTask();
+        persist();
+        render({ quote: pick(QUOTES) });
+      } else {
+        resetBtn.dataset.confirming = "true";
+        resetBtn.textContent = "Tap again to confirm reset";
+      }
+    });
+  }
+
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) { console.error("Save failed", e); }
+    scheduleCloudSave();
+  }
+
+  // ---------- Reminders & notifications ----------
+  let notifPermission = (typeof Notification !== "undefined") ? Notification.permission : "unsupported";
+
+  function showToast(title, body) {
+    const layer = document.getElementById("toastLayer");
+    if (!layer) return;
+    const el = document.createElement("div");
+    el.className = "toast";
+    const titleEl = document.createElement("div");
+    titleEl.className = "toast-title";
+    titleEl.textContent = title;
+    const bodyEl = document.createElement("div");
+    bodyEl.className = "toast-body";
+    bodyEl.textContent = body;
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "toast-close";
+    closeBtn.setAttribute("aria-label", "Dismiss");
+    closeBtn.textContent = "✕";
+    closeBtn.addEventListener("click", () => el.remove());
+    el.appendChild(closeBtn);
+    el.appendChild(titleEl);
+    el.appendChild(bodyEl);
+    layer.appendChild(el);
+    setTimeout(() => { if (el.parentElement) el.remove(); }, 9000);
+  }
+
+  function notify(title, body) {
+    showToast(title, body);
+    if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+      try { new Notification(title, { body }); } catch (e) {}
+    }
+  }
+
+  function requestNotifPermission() {
+    if (typeof Notification === "undefined") return;
+    Notification.requestPermission().then(p => {
+      notifPermission = p;
+      rerender();
+      if (p === "granted") notify("Reminders on", "You'll hear from this tab while it's open.");
+    });
+  }
+
+  function getNotifyFlags() {
+    saved.notifyFlags = saved.notifyFlags || {};
+    const today = todayStr();
+    if (!saved.notifyFlags[today]) saved.notifyFlags[today] = { idleNudge: false, streakRisk: false, slotsFired: {} };
+    return saved.notifyFlags[today];
+  }
+
+  function runReminderChecks() {
+    if (!saved) return;
+    const flags = getNotifyFlags();
+    const now = new Date();
+    const hour = now.getHours();
+    const today = todayStr();
+    const doneToday = (saved.history || []).some(h => h.date === today);
+
+    if (!doneToday && hour >= 11 && !flags.idleNudge) {
+      flags.idleNudge = true;
+      persist();
+      notify("Still time today", pick(QUOTES));
+    }
+
+    if (!doneToday && hour >= 19 && saved.streak > 0 && !flags.streakRisk) {
+      flags.streakRisk = true;
+      persist();
+      notify("Your streak is waiting", `You're on a ${saved.streak}-day streak — one small task keeps it going.`);
+    }
+
+    const type = dayType(now);
+    const plan = getSchedulePlan(type);
+    const nowHM = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    plan.forEach(slot => {
+      if (slot.remindAt && slot.remindAt === nowHM && !flags.slotsFired[slot.id]) {
+        flags.slotsFired[slot.id] = true;
+        persist();
+        notify(slot.label || "Scheduled reminder", slot.text || "Time for your planned block.");
+      }
+    });
+  }
+
+  // ---------- Ambient background: a small field of drifting embers ----------
+  // The pattern reseeds once a day (so it feels fresh without being distracting)
+  // and grows a little denser as totalCompleted climbs, echoing the lamp.
+  function initBackground() {
+    const canvas = document.getElementById("bgCanvas");
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d");
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let w = 0, h = 0;
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      w = canvas.clientWidth || canvas.parentElement.clientWidth;
+      h = canvas.clientHeight || canvas.parentElement.clientHeight;
+      canvas.width = Math.max(1, Math.round(w * dpr));
+      canvas.height = Math.max(1, Math.round(h * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    // day-seeded pseudo-random sequence, so the layout is stable through the day
+    let seed = Math.floor(Date.now() / 86400000) + 1;
+    function rand() {
+      seed = (seed * 9301 + 49297) % 233280;
+      return seed / 233280;
+    }
+
+    const completed = (saved && saved.totalCompleted) || 0;
+    const count = Math.min(14 + completed, 42);
+    const embers = Array.from({ length: count }, () => ({
+      x: rand() * 100,
+      y: rand() * 100,
+      r: 0.6 + rand() * 1.5,
+      speed: 0.15 + rand() * 0.3,
+      driftAmp: 1.5 + rand() * 2.5,
+      phase: rand() * Math.PI * 2,
+      warm: rand() > 0.35
+    }));
+
+    function frame(t) {
+      ctx.clearRect(0, 0, w, h);
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, "#2C1F42");
+      grad.addColorStop(1, "#180F26");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      const tt = reduceMotion ? 0 : t;
+      embers.forEach(p => {
+        const yy = ((p.y - tt * 0.0006 * p.speed) % 100 + 100) % 100;
+        const xx = ((p.x + Math.sin(tt * 0.0005 + p.phase) * p.driftAmp) % 100 + 100) % 100;
+        const twinkle = 0.55 + 0.45 * Math.sin(tt * 0.0018 + p.phase * 2);
+        ctx.globalAlpha = 0.25 + 0.45 * twinkle;
+        ctx.fillStyle = p.warm ? "#FF9A52" : "#5FD6C4";
+        ctx.beginPath();
+        ctx.arc((xx / 100) * w, (yy / 100) * h, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      if (!reduceMotion) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function startTimer() {
+    session.running = true;
+    render();
+    const endAt = Date.now() + session.secondsLeft * 1000;
+    timerHandle = setInterval(() => {
+      const remaining = Math.round((endAt - Date.now()) / 1000);
+      if (remaining <= 0) {
+        clearInterval(timerHandle);
+        session.secondsLeft = 0;
+        session.running = false;
+        session.finished = true;
+        notify("Time's up", `Nice work — "${session.text}" is done.`);
+        completeTask();
+      } else {
+        session.secondsLeft = remaining;
+        const timerEl = app.querySelector(".timer");
+        if (timerEl) timerEl.textContent = fmtTime(remaining);
+      }
+    }, 1000);
+  }
+
+  function logCompletion(text, minutes) {
+    const today = todayStr();
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const timeStr = new Date().toTimeString().slice(0, 5);
+
+    if (saved.lastCompleted !== today) {
+      if (saved.lastCompleted === yesterday) saved.streak += 1;
+      else saved.streak = 1;
+      saved.bestStreak = Math.max(saved.bestStreak, saved.streak);
+      saved.lastCompleted = today;
+    }
+    saved.totalCompleted += 1;
+    saved.history = saved.history || [];
+    saved.history.push({ date: today, time: timeStr, text, minutes });
+    persist();
+  }
+
+  function completeTask() {
+    logCompletion(session.text, session.minutes);
+    render({ quote: pick(QUOTES) });
+  }
+
+  function init() {
+    let state = null;
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) state = JSON.parse(raw);
+    } catch (e) {
+      state = null;
+    }
+
+    const today = todayStr();
+    if (!state) {
+      state = { startDate: today, lastCompleted: null, streak: 0, bestStreak: 0, totalCompleted: 0, history: [], personalNote: "", customTasks: [], journal: {}, videoLinks: [] };
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    }
+    if (!state.history) state.history = [];
+    if (!state.customTasks) state.customTasks = [];
+    if (!state.journal) state.journal = {};
+    if (!state.videoLinks) state.videoLinks = [];
+    if (!state.moodLog) state.moodLog = {};
+    if (!state.scheduleLog) state.scheduleLog = {};
+    if (!state.holidayDates) state.holidayDates = {};
+
+    saved = state;
+    session = newTask();
+    render();
+    initBackground();
+    setTimeout(runReminderChecks, 4000);
+    setInterval(runReminderChecks, 60000);
+    initCloud();
+  }
+
+  init();
+})();
+</script>
+</div></div>
+</body>
+</html>
