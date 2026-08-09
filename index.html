@@ -13,6 +13,7 @@
   }
   .frame-outer {
     height: 100vh;
+    height: 100dvh;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -118,28 +119,25 @@
   .tab-grid { display: block; }
   .app-tabbar {
     flex: 0 0 auto;
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     border-top: 1px solid var(--line);
     background: var(--bg-panel);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
   }
-  .app-tabbar::-webkit-scrollbar { display: none; }
   .tab-btn {
-    flex: 0 0 auto;
-    min-width: 62px;
     background: none;
     border-radius: 0;
-    padding: 10px 8px 8px;
-    font-size: 10px;
+    padding: 8px 2px 6px;
+    font-size: 9.5px;
     font-weight: 600;
     color: var(--ink-faint);
     text-transform: uppercase;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
+    letter-spacing: 0.01em;
+    border-bottom: 1px solid var(--line);
   }
-  .tab-btn .tab-icon { display: block; font-size: 17px; margin-bottom: 2px; }
+  .tab-btn:nth-child(-n+4) { border-top: none; }
+  .tab-btn:nth-child(n+5) { border-bottom: none; }
+  .tab-btn .tab-icon { display: block; font-size: 16px; margin-bottom: 2px; }
   .tab-btn.active { color: var(--amber); }
   .tab-btn:active { transform: none; background: var(--bg-panel-2); }
 
@@ -147,13 +145,13 @@
     .app-shell { flex-direction: row; }
     .app-tabbar {
       flex: 0 0 150px;
+      display: flex;
       flex-direction: column;
       border-top: none;
       border-right: 1px solid var(--line);
       padding: 18px 0;
       justify-content: flex-start;
       gap: 2px;
-      overflow-x: visible;
     }
     .tab-btn {
       flex: 0 0 auto;
@@ -163,6 +161,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      border: none;
     }
     .tab-btn .tab-icon { display: inline; margin: 0; font-size: 16px; }
     .app-header { text-align: left; padding: 20px 26px 14px; }
