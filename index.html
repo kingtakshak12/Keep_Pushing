@@ -97,7 +97,6 @@
     position: relative;
     z-index: 1;
   }
-  .app-shell { display: flex; flex-direction: column-reverse; height: 100%; overflow-x: hidden; width: 100%; }
   .app-body { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
   .app-header {
     flex: 0 0 auto;
@@ -117,37 +116,76 @@
     -webkit-overflow-scrolling: touch;
   }
   .tab-grid { display: block; }
+  .app-shell { display: flex; flex-direction: column; height: 100%; overflow-x: hidden; width: 100%; position: relative; }
   .app-tabbar {
-    flex: 0 0 auto;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    border-top: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 0; left: 0; right: 0;
     background: var(--bg-panel);
+    border-bottom: 1px solid var(--line);
+    max-height: 0;
+    overflow: hidden;
+    z-index: 50;
+    transition: max-height 0.18s ease;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
   }
+  .app-tabbar.open { max-height: 80vh; overflow-y: auto; }
+  .menu-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(20, 14, 30, 0.5);
+    z-index: 40;
+  }
+  .menu-backdrop.open { display: block; }
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-light);
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  .menu-toggle-icon { font-size: 15px; }
   .tab-btn {
     background: none;
     border-radius: 0;
-    padding: 8px 2px 6px;
-    font-size: 9.5px;
+    padding: 13px 18px;
+    font-size: 13px;
     font-weight: 600;
-    color: var(--ink-faint);
-    text-transform: uppercase;
-    letter-spacing: 0.01em;
+    color: var(--ink-light);
+    text-transform: none;
+    letter-spacing: normal;
     border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
   }
-  .tab-btn:nth-child(-n+4) { border-top: none; }
-  .tab-btn:nth-child(n+5) { border-bottom: none; }
-  .tab-btn .tab-icon { display: block; font-size: 16px; margin-bottom: 2px; }
-  .tab-btn.active { color: var(--amber); }
+  .tab-btn .tab-icon { display: inline; font-size: 16px; }
+  .tab-btn.active { color: var(--amber); background: var(--bg-panel-2); }
   .tab-btn:active { transform: none; background: var(--bg-panel-2); }
 
   @media (min-width: 720px) {
     .app-shell { flex-direction: row; }
+    .menu-toggle { display: none; }
+    .menu-backdrop { display: none !important; }
     .app-tabbar {
-      flex: 0 0 150px;
       display: flex;
+      position: static;
+      max-height: none;
+      overflow: visible;
+      box-shadow: none;
+      flex: 0 0 150px;
       flex-direction: column;
-      border-top: none;
+      border-bottom: none;
       border-right: 1px solid var(--line);
       padding: 18px 0;
       justify-content: flex-start;
@@ -515,6 +553,7 @@
   let timerHandle = null;
   let activeTab = "today";
   let scheduleView = null;
+  let mobileMenuOpen = false;
   let lastRenderOpts = {};
 
   // ============================================================
@@ -1403,15 +1442,20 @@
 
     app.innerHTML = `
       <div class="app-shell">
-        <div class="app-tabbar">
+        <div class="app-tabbar ${mobileMenuOpen ? "open" : ""}">
           ${TABS.map(t => `
             <button class="tab-btn ${activeTab === t.id ? "active" : ""}" data-tab="${t.id}">
               <span class="tab-icon">${t.icon}</span>${t.label}
             </button>
           `).join("")}
         </div>
+        <div class="menu-backdrop ${mobileMenuOpen ? "open" : ""}" id="menuBackdrop"></div>
         <div class="app-body">
           <div class="app-header">
+            <button class="menu-toggle" id="menuToggleBtn">
+              <span class="menu-toggle-icon">${mobileMenuOpen ? "✕" : "☰"}</span>
+              <span class="menu-toggle-label">${TABS.find(t => t.id === activeTab)?.label || "Menu"}</span>
+            </button>
             <div class="eyebrow">Day ${daysBetween(saved.startDate, today) + 1} since you started</div>
             <h1 class="title">Keep Pushing</h1>
             <div class="stats-row">
@@ -1436,8 +1480,20 @@
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         activeTab = btn.dataset.tab;
+        mobileMenuOpen = false;
         rerender();
       });
+    });
+
+    const menuToggleBtn = q("menuToggleBtn");
+    if (menuToggleBtn) menuToggleBtn.addEventListener("click", () => {
+      mobileMenuOpen = !mobileMenuOpen;
+      rerender();
+    });
+    const menuBackdrop = q("menuBackdrop");
+    if (menuBackdrop) menuBackdrop.addEventListener("click", () => {
+      mobileMenuOpen = false;
+      rerender();
     });
 
     document.querySelectorAll(".mood-btn").forEach(btn => {
