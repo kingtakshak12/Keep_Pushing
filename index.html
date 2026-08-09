@@ -538,7 +538,20 @@
   ];
 
   const KEY = "keep-pushing-progress";
-  const todayStr = () => new Date().toISOString().slice(0, 10);
+  // Returns YYYY-MM-DD for a Date using its LOCAL calendar day, not UTC.
+  // toISOString() always reports UTC, so anyone east of UTC (e.g. India,
+  // UTC+5:30) would have the app think it's still "yesterday" for hours
+  // after their local midnight — breaking streaks, the day counter, and
+  // calendar/stats bucketing. Every date-key computation should go through
+  // this instead of `.toISOString().slice(0,10)`.
+  const localIso = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+  const todayStr = () => localIso(new Date());
+  const yesterdayStr = () => { const d = new Date(); d.setDate(d.getDate() - 1); return localIso(d); };
   const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   const fmtTime = (secs) => {
@@ -546,6 +559,12 @@
     const s = (secs % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
+  // Escapes text before it goes into innerHTML or an HTML attribute, so
+  // user-entered content (notes, journal entries, custom tasks, video
+  // titles, schedule slots) can never be interpreted as markup/script.
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
 
   const app = document.getElementById("app");
   let saved = null;
@@ -812,7 +831,7 @@
     if (session.editingNote) {
       return `
         <div class="note-card">
-          <textarea id="noteInput" class="note-input" placeholder="Something you want to keep remembering...">${saved.personalNote || ""}</textarea>
+          <textarea id="noteInput" class="note-input" placeholder="Something you want to keep remembering...">${esc(saved.personalNote)}</textarea>
           <button id="saveNoteBtn" style="margin-top:10px;">Save reminder</button>
         </div>
       `;
@@ -820,7 +839,7 @@
     if (saved.personalNote) {
       return `
         <div class="note-card">
-          <div class="note-text">${saved.personalNote}</div>
+          <div class="note-text">${esc(saved.personalNote)}</div>
           <button id="editNoteBtn" class="link-btn" style="margin-top:8px; color:#5B4F33;">Edit</button>
         </div>
       `;
@@ -837,7 +856,7 @@
     return `
       <div class="task-card ${session.running ? "task-card-focus" : ""}">
         <div class="task-label">${session.finished ? "Completed" : session.running ? "In progress" : "Your task"}</div>
-        <div class="task-text">${session.text}</div>
+        <div class="task-text">${esc(session.text)}</div>
         ${session.finished ? `
           <div class="done-msg">✓ Nice work — that's done.</div>
           <button id="nextBtn" style="margin-top:14px;">Get another task</button>
@@ -903,7 +922,7 @@
   const PLAN_LABELS = { weekday: "Weekday", weekend: "Weekend", holiday: "Holiday" };
 
   function dayType(d) {
-    const iso = d.toISOString().slice(0, 10);
+    const iso = localIso(d);
     if ((saved.holidayDates || {})[iso]) return "holiday";
     const day = d.getDay();
     return (day === 0 || day === 6) ? "weekend" : "weekday";
@@ -974,8 +993,8 @@
         if (done) {
           return `
             <div class="sched-block sched-done">
-              <div class="sched-time">${slot.label || "Slot"} <span class="sched-timerange">${slot.time}</span></div>
-              <div class="sched-task">${slot.text}</div>
+              <div class="sched-time">${esc(slot.label || "Slot")} <span class="sched-timerange">${esc(slot.time)}</span></div>
+              <div class="sched-task">${esc(slot.text)}</div>
               <div class="done-msg">✓ Done</div>
             </div>
           `;
@@ -983,12 +1002,12 @@
         return `
           <div class="sched-block">
             <div class="sched-time-row">
-              <input type="text" class="note-input sched-label-input" data-id="${slot.id}" data-view="${viewType}" placeholder="Label" value="${slot.label || ""}" style="min-height:auto; padding:6px 8px; width:48%;" />
-              <input type="text" class="note-input sched-time-input" data-id="${slot.id}" data-view="${viewType}" placeholder="Time" value="${slot.time || ""}" style="min-height:auto; padding:6px 8px; width:48%; text-align:right;" />
+              <input type="text" class="note-input sched-label-input" data-id="${slot.id}" data-view="${viewType}" placeholder="Label" value="${esc(slot.label || "")}" style="min-height:auto; padding:6px 8px; width:48%;" />
+              <input type="text" class="note-input sched-time-input" data-id="${slot.id}" data-view="${viewType}" placeholder="Time" value="${esc(slot.time || "")}" style="min-height:auto; padding:6px 8px; width:48%; text-align:right;" />
             </div>
-            <input type="text" class="note-input sched-text-input" data-id="${slot.id}" data-view="${viewType}" placeholder="What will you do?" value="${slot.text || ""}" style="min-height:auto; padding:9px 10px; margin-top:8px; margin-bottom:6px;" />
+            <input type="text" class="note-input sched-text-input" data-id="${slot.id}" data-view="${viewType}" placeholder="What will you do?" value="${esc(slot.text || "")}" style="min-height:auto; padding:9px 10px; margin-top:8px; margin-bottom:6px;" />
             <div class="sched-time-row">
-              <input type="number" class="note-input sched-mins-input" data-id="${slot.id}" data-view="${viewType}" placeholder="Minutes (optional)" value="${slot.minutes || ""}" style="min-height:auto; padding:9px 10px; width:48%;" />
+              <input type="number" class="note-input sched-mins-input" data-id="${slot.id}" data-view="${viewType}" placeholder="Minutes (optional)" value="${esc(slot.minutes || "")}" style="min-height:auto; padding:9px 10px; width:48%;" />
               <label style="width:48%; display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-soft);">
                 Remind at
                 <input type="time" class="note-input sched-remind-input" data-id="${slot.id}" data-view="${viewType}" value="${slot.remindAt || ""}" style="min-height:auto; padding:6px 8px; flex:1;" />
@@ -1056,14 +1075,14 @@
     const journalHtml = journalEntry ? `
       <div class="day-detail-journal">
         <div class="sched-time">Journal entry</div>
-        <div class="note-text" style="color:var(--ink-light); font-size:14px;">${journalEntry}</div>
+        <div class="note-text" style="color:var(--ink-light); font-size:14px;">${esc(journalEntry)}</div>
       </div>
     ` : "";
 
     if (entries.length === 0) {
       return `
         <div class="day-detail">
-          <div class="day-detail-label">${label}</div>
+          <div class="day-detail-label">${esc(label)}</div>
           <div class="day-detail-empty">No tasks completed this day.</div>
           ${journalHtml}
         </div>
@@ -1071,11 +1090,11 @@
     }
     return `
       <div class="day-detail">
-        <div class="day-detail-label">${label} — ${entries.length} completed</div>
+        <div class="day-detail-label">${esc(label)} — ${entries.length} completed</div>
         ${entries.map(e => `
           <div class="report-row">
-            <span class="report-time">${e.time}</span>
-            <span class="report-task">${e.text}</span>
+            <span class="report-time">${esc(e.time)}</span>
+            <span class="report-task">${esc(e.text)}</span>
             <span class="report-mins">${e.minutes}m</span>
           </div>
         `).join("")}
@@ -1120,11 +1139,11 @@
     const days = Object.keys(byDay).sort().reverse();
     const daySections = days.map(day => `
       <div class="report-day">
-        <div class="report-day-label">${day}</div>
+        <div class="report-day-label">${esc(day)}</div>
         ${byDay[day].map(e => `
           <div class="report-row">
-            <span class="report-time">${e.time}</span>
-            <span class="report-task">${e.text}</span>
+            <span class="report-time">${esc(e.time)}</span>
+            <span class="report-task">${esc(e.text)}</span>
             <span class="report-mins">${e.minutes}m</span>
           </div>
         `).join("")}
@@ -1149,8 +1168,8 @@
       <div class="panel-title" style="margin-top:16px;">Past entries</div>
       ${pastDates.map(d => `
         <div class="journal-past-entry">
-          <div class="report-day-label">${d}</div>
-          <div class="note-text" style="color:var(--ink-light); font-size:14px;">${journal[d]}</div>
+          <div class="report-day-label">${esc(d)}</div>
+          <div class="note-text" style="color:var(--ink-light); font-size:14px;">${esc(journal[d])}</div>
         </div>
       `).join("")}
     `;
@@ -1158,7 +1177,7 @@
     return `
       <div class="panel">
         <div class="panel-title">Today's journal</div>
-        <textarea id="journalInput" class="note-input" style="min-height:100px; background:var(--paper); color:#3A3325;" placeholder="Write anything — how today went, what you're feeling, what you want to remember...">${todayEntry}</textarea>
+        <textarea id="journalInput" class="note-input" style="min-height:100px; background:var(--paper); color:#3A3325;" placeholder="Write anything — how today went, what you're feeling, what you want to remember...">${esc(todayEntry)}</textarea>
         <button id="saveJournalBtn" style="margin-top:10px;">Save entry</button>
         ${session.journalSaved ? `<div class="done-msg" style="margin-top:8px;">✓ Saved — it's stored under today's date, and you'll see it here and on today's calendar day.</div>` : ""}
         ${pastEntries}
@@ -1177,10 +1196,10 @@
         <div class="video-card video-card-playing">
           <div class="video-embed-wrap">
             <iframe src="https://www.youtube-nocookie.com/embed/${vid}?autoplay=1&rel=0"
-              title="${v.title || "video"}" frameborder="0"
+              title="${esc(v.title || "video")}" frameborder="0"
               allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
           </div>
-          <div class="video-title">${v.title || v.url}
+          <div class="video-title">${esc(v.title || v.url)}
             <button class="link-btn close-video-btn" data-vid="${key}" style="padding:2px 0;">Close</button>
           </div>
         </div>
@@ -1198,7 +1217,7 @@
           <div class="video-play-badge">▶</div>
           ${removeIdx !== null ? `<button class="remove-video-btn" data-idx="${removeIdx}">✕</button>` : ""}
         </div>
-        <div class="video-title">${v.title || v.url}</div>
+        <div class="video-title">${esc(v.title || v.url)}</div>
       </div>
     `;
   }
@@ -1218,8 +1237,8 @@
         <div class="panel-title">Videos to remember</div>
         ${customGrid}
         <div class="form-row">
-          <input type="text" id="newVideoTitle" placeholder="Title (optional)" value="${session.newVideoTitle || ""}" />
-          <input type="text" id="newVideoUrl" placeholder="YouTube link" value="${session.newVideoUrl || ""}" />
+          <input type="text" id="newVideoTitle" placeholder="Title (optional)" value="${esc(session.newVideoTitle || "")}" />
+          <input type="text" id="newVideoUrl" placeholder="YouTube link" value="${esc(session.newVideoUrl || "")}" />
           <button id="addVideoBtn" style="margin-top:10px;">Save video</button>
         </div>
       </div>
@@ -1233,7 +1252,7 @@
       ? `<div class="day-detail-empty">No custom tasks yet — add one below.</div>`
       : custom.map((t, i) => `
           <div class="task-row">
-            <span class="report-task">${t.text}</span>
+            <span class="report-task">${esc(t.text)}</span>
             <span class="report-mins">${t.minutes}m</span>
             <button class="remove-task-btn" data-idx="${i}">✕</button>
           </div>
@@ -1258,8 +1277,8 @@
         <div class="panel-title">Your custom tasks</div>
         ${rows}
         <div class="form-row">
-          <input type="text" id="newTaskText" placeholder="Task description" value="${session.newTaskText || ""}" />
-          <input type="number" id="newTaskMinutes" placeholder="Minutes" value="${session.newTaskMinutes || ""}" />
+          <input type="text" id="newTaskText" placeholder="Task description" value="${esc(session.newTaskText || "")}" />
+          <input type="number" id="newTaskMinutes" placeholder="Minutes" value="${esc(session.newTaskMinutes || "")}" />
           <button id="addTaskBtn" style="margin-top:10px;">Add task</button>
         </div>
       </div>
@@ -1288,13 +1307,14 @@
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay());
-    return startOfWeek.toISOString().slice(0, 10);
+    return localIso(startOfWeek);
   }
   function last14DaysCounts() {
     const days = [];
     for (let i = 13; i >= 0; i--) {
-      const d = new Date(Date.now() - i * 86400000);
-      const iso = d.toISOString().slice(0, 10);
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const iso = localIso(d);
       const count = (saved.history || []).filter(h => h.date === iso).length;
       days.push({ date: iso, count });
     }
@@ -1378,7 +1398,7 @@
       return `
         <div class="panel">
           <div class="panel-title">Signed in</div>
-          <div class="note-text">${fbUser.email || "Google account"}</div>
+          <div class="note-text">${esc(fbUser.email || "Google account")}</div>
           <div class="mood-hint" style="margin:10px 0;">${cloudStatusLabel()}</div>
           <button id="signOutBtn" class="danger-btn">Sign out</button>
         </div>
@@ -1388,7 +1408,7 @@
       <div class="panel">
         <div class="panel-title">Sign in to sync across devices</div>
         ${cloudError ? `<div class="mood-hint" style="color:var(--rust); margin-bottom:8px;">${cloudError}</div>` : ""}
-        <div class="form-row"><input id="authEmail" type="email" placeholder="Email" value="${session.authEmail || ""}"></div>
+        <div class="form-row"><input id="authEmail" type="email" placeholder="Email" value="${esc(session.authEmail || "")}"></div>
         <div class="form-row"><input id="authPassword" type="password" placeholder="Password (6+ characters)"></div>
         <button id="signInBtn" style="margin-top:12px;">Sign in — I already have an account</button>
         <button id="signUpBtn" style="margin-top:14px; background:#2E7D5B; color:#fff; border:2px solid #1E5C40;">+ New here? Create an account</button>
@@ -1762,7 +1782,89 @@
     });
   }
 
+  // ---------- Cross-tab / cross-write safety ----------
+  // Opening the app in a second tab (or a second device via cloud sync)
+  // gives that copy its own in-memory `saved`. Without this, whichever
+  // tab/device called persist() last would fully overwrite the other's
+  // data — silently deleting a task it had just completed. mergeSaved
+  // folds both copies together on every write instead of one replacing
+  // the other, and streak/total are derived from the merged history
+  // rather than trusted as two separately-incremented counters.
+  function dedupeBy(list, keyFn) {
+    const seen = new Set();
+    const out = [];
+    (list || []).forEach(item => {
+      const k = keyFn(item);
+      if (!seen.has(k)) { seen.add(k); out.push(item); }
+    });
+    return out;
+  }
+
+  function deriveStatsFromHistory(state) {
+    const dates = Array.from(new Set((state.history || []).map(h => h.date))).sort();
+    state.totalCompleted = (state.history || []).length;
+    let best = 0, run = 0, prevDate = null;
+    dates.forEach(d => {
+      run = (prevDate && daysBetween(prevDate, d) === 1) ? run + 1 : 1;
+      best = Math.max(best, run);
+      prevDate = d;
+    });
+    const lastDate = dates.length ? dates[dates.length - 1] : null;
+    state.lastCompleted = lastDate;
+    const today = todayStr();
+    const yesterday = yesterdayStr();
+    state.streak = (lastDate === today || lastDate === yesterday) ? run : 0;
+    state.bestStreak = Math.max(best, state.bestStreak || 0);
+  }
+
+  function mergeSaved(local, incoming) {
+    if (!incoming) return local;
+    if (!local) return incoming;
+    const merged = Object.assign({}, incoming, local); // local wins for any plain/unhandled field
+
+    merged.startDate = (local.startDate && incoming.startDate)
+      ? (local.startDate < incoming.startDate ? local.startDate : incoming.startDate)
+      : (local.startDate || incoming.startDate);
+
+    merged.history = dedupeBy(
+      (incoming.history || []).concat(local.history || []),
+      h => `${h.date}|${h.time}|${h.text}|${h.minutes}`
+    ).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+    merged.customTasks = dedupeBy(
+      (incoming.customTasks || []).concat(local.customTasks || []),
+      t => `${t.text}|${t.minutes}`
+    );
+
+    merged.videoLinks = dedupeBy(
+      (incoming.videoLinks || []).concat(local.videoLinks || []),
+      v => v.url
+    );
+
+    // Day-keyed maps: local's own entries win per key, incoming just fills gaps.
+    merged.journal = Object.assign({}, incoming.journal, local.journal);
+    merged.moodLog = Object.assign({}, incoming.moodLog, local.moodLog);
+    merged.holidayDates = Object.assign({}, incoming.holidayDates, local.holidayDates);
+    merged.notifyFlags = Object.assign({}, incoming.notifyFlags, local.notifyFlags);
+    merged.schedulePlan = Object.assign({}, incoming.schedulePlan, local.schedulePlan);
+
+    // scheduleLog is one level deeper (date -> slotId -> done) — a shallow
+    // merge could drop a slot one tab marked done if the other tab touched
+    // the same day, so merge each day's slot flags together too.
+    merged.scheduleLog = {};
+    new Set([...Object.keys(incoming.scheduleLog || {}), ...Object.keys(local.scheduleLog || {})]).forEach(d => {
+      merged.scheduleLog[d] = Object.assign({}, (incoming.scheduleLog || {})[d], (local.scheduleLog || {})[d]);
+    });
+
+    deriveStatsFromHistory(merged);
+    return merged;
+  }
+
   function persist() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) saved = mergeSaved(saved, JSON.parse(raw));
+    } catch (e) { /* on-disk copy missing/corrupt — just write what we have */ }
     try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) { console.error("Save failed", e); }
     scheduleCloudSave();
   }
@@ -1816,8 +1918,22 @@
     return saved.notifyFlags[today];
   }
 
+  // If the last completed day isn't today or yesterday, the streak is
+  // already broken — don't let the header keep showing a stale number
+  // until the next time a task happens to be completed.
+  function checkStreakDecay() {
+    if (!saved) return;
+    const today = todayStr();
+    const yesterday = yesterdayStr();
+    if (saved.streak > 0 && saved.lastCompleted && saved.lastCompleted !== today && saved.lastCompleted !== yesterday) {
+      saved.streak = 0;
+      persist();
+    }
+  }
+
   function runReminderChecks() {
     if (!saved) return;
+    checkStreakDecay();
     const flags = getNotifyFlags();
     const now = new Date();
     const hour = now.getHours();
@@ -1869,8 +1985,9 @@
     resize();
     window.addEventListener("resize", resize);
 
-    // day-seeded pseudo-random sequence, so the layout is stable through the day
-    let seed = Math.floor(Date.now() / 86400000) + 1;
+    // day-seeded pseudo-random sequence, tied to the local calendar day so
+    // it reseeds at local midnight rather than UTC midnight
+    let seed = todayStr().split("-").reduce((n, part) => n * 37 + Number(part), 1);
     function rand() {
       seed = (seed * 9301 + 49297) % 233280;
       return seed / 233280;
@@ -1938,18 +2055,10 @@
 
   function logCompletion(text, minutes) {
     const today = todayStr();
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
     const timeStr = new Date().toTimeString().slice(0, 5);
-
-    if (saved.lastCompleted !== today) {
-      if (saved.lastCompleted === yesterday) saved.streak += 1;
-      else saved.streak = 1;
-      saved.bestStreak = Math.max(saved.bestStreak, saved.streak);
-      saved.lastCompleted = today;
-    }
-    saved.totalCompleted += 1;
     saved.history = saved.history || [];
     saved.history.push({ date: today, time: timeStr, text, minutes });
+    deriveStatsFromHistory(saved);
     persist();
   }
 
@@ -1981,9 +2090,18 @@
     if (!state.holidayDates) state.holidayDates = {};
 
     saved = state;
+    deriveStatsFromHistory(saved);
+    checkStreakDecay();
     session = newTask();
     render();
     initBackground();
+    window.addEventListener("storage", (e) => {
+      if (e.key !== KEY || !e.newValue || !saved) return;
+      try {
+        saved = mergeSaved(saved, JSON.parse(e.newValue));
+        rerenderGlobal();
+      } catch (err) { /* ignore a malformed write from another tab */ }
+    });
     setTimeout(runReminderChecks, 4000);
     setInterval(runReminderChecks, 60000);
     initCloud();
