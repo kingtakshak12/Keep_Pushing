@@ -752,6 +752,7 @@
   }
 
   function newTask() {
+    if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
     const pool = poolForMood();
     const t = pool[Math.floor(Math.random() * pool.length)];
     return {
@@ -1913,6 +1914,8 @@
   }
 
   function startTimer() {
+    if (session.running) return;
+    if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
     session.running = true;
     render();
     const endAt = Date.now() + session.secondsLeft * 1000;
