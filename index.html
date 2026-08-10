@@ -85,6 +85,30 @@
     --rust: #E14F63;
     --line: #E4DCF2;
   }
+  /* Mood themes — scoped to .app-shell so every tab/panel picks up the
+     right palette via CSS custom-property inheritance, not just Today. */
+  .app-shell.mood-rough {
+    --bg-deep: #1C2436;
+    --bg-panel-2: #EAF0F5;
+    --amber: #6FA1B0;
+    --amber-dim: #55879A;
+    --teal: #7BB8A6;
+    --line: #DCE6EA;
+  }
+  .app-shell.mood-okay {
+    --bg-deep: #241934;
+    --amber: #FF8A3D;
+    --amber-dim: #E06A1F;
+    --teal: #2FB6A5;
+  }
+  .app-shell.mood-good {
+    --bg-deep: #2B1A10;
+    --bg-panel-2: #FFF2E2;
+    --amber: #FF7A1A;
+    --amber-dim: #E85D00;
+    --teal: #E8A23D;
+    --line: #F5DFC4;
+  }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; height: 100%; background: var(--bg-deep); }
 
@@ -610,7 +634,6 @@
   let AuthLib = null, FsLib = null, fbAuth = null, fbDb = null, fbUser = null;
   let cloudStatus = CLOUD_CONFIGURED ? "loading" : "unconfigured"; // loading|signed-out|syncing|synced|conflict|error
   let cloudError = "";
-  let pendingCloudConflict = null;
   let cloudSaveTimer = null;
 
   function rerenderGlobal() { render(lastRenderOpts); }
@@ -649,18 +672,12 @@
     try {
       const ref = FsLib.doc(fbDb, "users", user.uid);
       const snap = await FsLib.getDoc(ref);
-      const hasLocalProgress = !!(saved && (saved.totalCompleted > 0 || (saved.history && saved.history.length)));
       if (snap.exists()) {
         const cloudData = JSON.parse(snap.data().payload);
-        const differs = JSON.stringify(cloudData) !== JSON.stringify(saved);
-        if (hasLocalProgress && differs) {
-          pendingCloudConflict = { cloud: cloudData };
-          cloudStatus = "conflict";
-        } else {
-          saved = cloudData;
-          try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
-          cloudStatus = "synced";
-        }
+        saved = mergeSaved(saved, cloudData);
+        deriveStatsFromHistory(saved);
+        try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+        await pushToCloud();
       } else {
         await pushToCloud();
       }
@@ -741,6 +758,8 @@
     return TASKS.concat(saved.customTasks || []);
   }
 
+  const MOOD_CHECKIN_EVERY = 3; // ask again after this many completed tasks
+
   function todaysMood() {
     return (saved.moodLog || {})[todayStr()] || null;
   }
@@ -748,7 +767,14 @@
   function setTodaysMood(mood) {
     saved.moodLog = saved.moodLog || {};
     saved.moodLog[todayStr()] = mood;
+    saved.moodSetAtCount = saved.totalCompleted || 0;
     try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+  }
+
+  function moodNeedsCheckin() {
+    if (!todaysMood()) return false;
+    const base = saved.moodSetAtCount ?? saved.totalCompleted ?? 0;
+    return (saved.totalCompleted || 0) - base >= MOOD_CHECKIN_EVERY;
   }
 
   function poolForMood() {
@@ -852,10 +878,18 @@
   }
 
   // ---------- Task ----------
+  const TASK_LABELS = {
+    rough: "One small thing — that's all",
+    okay: "Your task",
+    good: "Your power task"
+  };
+
   function renderTask() {
+    const mood = todaysMood();
+    const baseLabel = TASK_LABELS[mood] || "Your task";
     return `
       <div class="task-card ${session.running ? "task-card-focus" : ""}">
-        <div class="task-label">${session.finished ? "Completed" : session.running ? "In progress" : "Your task"}</div>
+        <div class="task-label">${session.finished ? "Completed" : session.running ? "In progress" : baseLabel}</div>
         <div class="task-text">${esc(session.text)}</div>
         ${session.finished ? `
           <div class="done-msg">✓ Nice work — that's done.</div>
@@ -874,16 +908,76 @@
 
   function renderMoodCheck() {
     const mood = todaysMood();
-    if (mood) return "";
-    return `
-      <div class="mood-card">
-        <div class="mood-label">How are you feeling right now?</div>
-        <div class="mood-btns">
-          <button class="mood-btn" data-mood="rough">😩 Rough</button>
-          <button class="mood-btn" data-mood="okay">🙂 Okay</button>
-          <button class="mood-btn" data-mood="good">💪 Good</button>
+    if (!mood) {
+      return `
+        <div class="mood-card">
+          <div class="mood-label">How are you feeling right now?</div>
+          <div class="mood-btns">
+            <button class="mood-btn" data-mood="rough">😩 Rough</button>
+            <button class="mood-btn" data-mood="okay">🙂 Okay</button>
+            <button class="mood-btn" data-mood="good">💪 Good</button>
+          </div>
+          <div class="mood-hint">This adjusts today's tasks and the whole app's feel to match — no wrong answer.</div>
         </div>
-        <div class="mood-hint">This just adjusts how big today's tasks are — no wrong answer.</div>
+      `;
+    }
+    if (moodNeedsCheckin()) {
+      return `
+        <div class="mood-card">
+          <div class="mood-label">You've been at it a bit — how are you feeling now?</div>
+          <div class="mood-btns">
+            <button class="mood-btn" data-mood="rough">😩 Rough</button>
+            <button class="mood-btn" data-mood="okay">🙂 Okay</button>
+            <button class="mood-btn" data-mood="good">💪 Good</button>
+          </div>
+          <div class="mood-hint">Just checking in — pick whatever fits right now.</div>
+        </div>
+      `;
+    }
+    return "";
+  }
+
+  const MOOD_GUIDANCE = {
+    rough: {
+      title: "Rough day — let's just get through it",
+      body: "That's completely okay. You don't need to do much today — just one small, doable thing is enough to keep your streak and your momentum alive.",
+      tips: [
+        "Take a slow breath before you start — no rush.",
+        "Pick the smallest task on the list if this one feels like too much.",
+        "If you want to get it off your chest, the Journal tab is right there."
+      ]
+    },
+    okay: {
+      title: "Steady day",
+      body: "Nothing dramatic needed — just keep showing up. Small, consistent steps are what actually build the streak.",
+      tips: [
+        "One task, done well, is a win.",
+        "If you find extra energy partway through, feel free to do another."
+      ]
+    },
+    good: {
+      title: "Good energy — let's use it",
+      body: "Nice, you've got some momentum today. Use it while it's here — take on the task, and if you're still going after, come back for another.",
+      tips: [
+        "Consider a slightly bigger or harder task than usual.",
+        "Finished early? Hit 'Skip, give me another' for a bonus round."
+      ]
+    }
+  };
+
+  function renderMoodGuidance() {
+    const mood = todaysMood();
+    if (!mood || moodNeedsCheckin()) return "";
+    const g = MOOD_GUIDANCE[mood];
+    if (!g) return "";
+    return `
+      <div class="panel" style="margin-bottom:14px;">
+        <div class="panel-title">${esc(g.title)}</div>
+        <div class="note-text" style="margin-bottom:10px;">${esc(g.body)}</div>
+        <ul style="margin:0; padding-left:18px; color:var(--ink-soft); font-size:13px; line-height:1.6;">
+          ${g.tips.map(t => `<li>${esc(t)}</li>`).join("")}
+        </ul>
+        <button id="changeMoodBtn" class="link-btn" style="margin-top:10px;">Actually, I feel different — change it</button>
       </div>
     `;
   }
@@ -1384,16 +1478,6 @@
         </div>
       `;
     }
-    if (pendingCloudConflict) {
-      return `
-        <div class="panel">
-          <div class="panel-title">Which progress do you want to keep?</div>
-          <div class="note-text" style="margin-bottom:14px;">This device has progress saved locally, and your account already has different progress saved in the cloud. Pick one — the other will be replaced.</div>
-          <button id="useCloudBtn">Use my cloud progress</button>
-          <button id="keepLocalBtn" class="link-btn" style="margin-top:10px;">Keep this device's progress instead</button>
-        </div>
-      `;
-    }
     if (fbUser) {
       return `
         <div class="panel">
@@ -1443,6 +1527,7 @@
       default:
         return `
           ${renderMoodCheck()}
+          ${renderMoodGuidance()}
           <div class="tab-grid">
             <div>${renderLamp()}${renderNote()}</div>
             <div>
@@ -1462,7 +1547,7 @@
     const today = todayStr();
 
     app.innerHTML = `
-      <div class="app-shell">
+      <div class="app-shell mood-${todaysMood() || "none"}">
         <div class="app-tabbar ${mobileMenuOpen ? "open" : ""}">
           ${TABS.map(t => `
             <button class="tab-btn ${activeTab === t.id ? "active" : ""}" data-tab="${t.id}">
@@ -1523,6 +1608,14 @@
         session = newTask();
         rerender();
       });
+    });
+
+    const changeMoodBtn = q("changeMoodBtn");
+    if (changeMoodBtn) changeMoodBtn.addEventListener("click", () => {
+      saved.moodLog = saved.moodLog || {};
+      delete saved.moodLog[todayStr()];
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+      rerender();
     });
 
     document.querySelectorAll(".sched-toggle-btn").forEach(btn => {
@@ -1748,21 +1841,6 @@
     if (googleSignInBtn) googleSignInBtn.addEventListener("click", cloudSignInGoogle);
     const signOutBtn = q("signOutBtn");
     if (signOutBtn) signOutBtn.addEventListener("click", cloudSignOut);
-    const useCloudBtn = q("useCloudBtn");
-    if (useCloudBtn) useCloudBtn.addEventListener("click", () => {
-      saved = pendingCloudConflict.cloud;
-      pendingCloudConflict = null;
-      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
-      cloudStatus = "synced";
-      session = newTask();
-      rerender();
-    });
-    const keepLocalBtn = q("keepLocalBtn");
-    if (keepLocalBtn) keepLocalBtn.addEventListener("click", () => {
-      pendingCloudConflict = null;
-      pushToCloud().then(rerenderGlobal);
-    });
-
     const enableNotifsBtn = q("enableNotifsBtn");
     if (enableNotifsBtn) enableNotifsBtn.addEventListener("click", requestNotifPermission);
 
