@@ -362,11 +362,16 @@
 <style id="buddy-existing-account-fix">
   .buddy-cloud-note{margin-top:10px;font-size:12px;line-height:1.45;color:rgba(255,255,255,.62)}
 </style>
-<style id="buddy-floating-style">
-#buddyFloating{position:fixed;right:18px;bottom:82px;z-index:9000;display:none;width:58px;height:58px;border-radius:50%;border:1px solid var(--line);background:var(--bg-panel);box-shadow:0 10px 26px rgba(0,0,0,.18);cursor:pointer;align-items:center;justify-content:center;overflow:hidden;animation:buddyFloatButton 2.8s ease-in-out infinite}
-#buddyFloating svg{width:58px;height:70px}
-@keyframes buddyFloatButton{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+<style id="floating-buddy-system">
+#floatingBuddyStage{position:fixed;inset:0;z-index:8000;pointer-events:none;overflow:hidden}
+#floatingBuddyCanvas{position:absolute;width:220px;height:270px;left:0;top:0;will-change:transform;filter:drop-shadow(0 18px 22px rgba(0,0,0,.15))}
+#floatingBuddyBubble{position:absolute;left:0;top:0;max-width:205px;padding:10px 14px;border:1px solid var(--line);border-radius:18px 18px 18px 5px;background:color-mix(in srgb,var(--bg-panel) 94%,transparent);color:var(--ink-light);box-shadow:0 12px 30px rgba(0,0,0,.14);font-size:12px;line-height:1.4;font-weight:750;opacity:0;transform:translateY(7px) scale(.96);transition:opacity .28s ease,transform .28s ease;backdrop-filter:blur(12px)}
+#floatingBuddyBubble.show{opacity:1;transform:translateY(0) scale(1)}
+@media(max-width:700px){#floatingBuddyCanvas{width:165px;height:205px}#floatingBuddyBubble{max-width:165px;font-size:10px}}
+@media(prefers-reduced-motion:reduce){#floatingBuddyStage{display:none!important}}
 </style>
+
 </head>
 <body>
 <div class="frame-outer"><div class="frame-box">
@@ -375,7 +380,7 @@
 <div id="toastLayer" aria-live="polite"></div>
 <div id="kpCelebration" aria-hidden="true"></div>
 <div id="buddyMoodBurst" aria-hidden="true"></div>
-<div id="buddyFloating" aria-label="Open your Motivation Buddy"></div>
+<div id="floatingBuddyStage" aria-hidden="true"><canvas id="floatingBuddyCanvas"></canvas><div id="floatingBuddyBubble"></div></div>
 <style id="enhanced-animations">
   /* === Keep Pushing — enhanced motion layer === */
   @keyframes kpFadeUp {
@@ -2029,41 +2034,41 @@
   }
 
   function buddySvg(gender, mood, small = false) {
-    const sizeClass = small ? "buddy-mini-art" : "buddy-art";
-    const eyeY = mood === "rough" ? 56 : 55;
-    const eyeStyle = mood === "rough"
-      ? `<path d="M43 ${eyeY} q4 4 8 0" fill="none" stroke="#2A2030" stroke-width="2.4" stroke-linecap="round"/><path d="M68 ${eyeY} q4 4 8 0" fill="none" stroke="#2A2030" stroke-width="2.4" stroke-linecap="round"/>`
-      : `<ellipse cx="47" cy="${eyeY}" rx="4.2" ry="6" fill="#2A2030"/><ellipse cx="72" cy="${eyeY}" rx="4.2" ry="6" fill="#2A2030"/><circle cx="48" cy="${eyeY-2}" r="1.5" fill="#fff"/><circle cx="73" cy="${eyeY-2}" r="1.5" fill="#fff"/>`;
+    const cls = small ? "buddy-mini-art" : "buddy-character";
+    const hair = gender === "girl"
+      ? `<path d="M31 47C28 23 40 10 60 10c23 0 35 15 29 39-6-9-12-13-20-16-8 7-18 10-29 6-4 3-6 6-9 8Z" fill="#30283A"/><path d="M34 39c-8 11-6 23 1 30M86 39c8 11 6 23-1 30" fill="none" stroke="#30283A" stroke-width="7" stroke-linecap="round"/>`
+      : `<path d="M31 47C28 22 41 10 61 10c22 0 33 15 28 38-6-9-13-14-21-15-8 7-18 10-29 5-3 3-5 6-8 9Z" fill="#2C2638"/>`;
+    const eyes = mood === "rough"
+      ? `<path d="M40 56q6-5 12 0M67 56q6-5 12 0" fill="none" stroke="#27222D" stroke-width="2.6" stroke-linecap="round"/>`
+      : `<ellipse cx="46" cy="56" rx="4.2" ry="6" fill="#27222D"/><ellipse cx="73" cy="56" rx="4.2" ry="6" fill="#27222D"/><circle cx="47" cy="53.7" r="1.5" fill="#fff"/><circle cx="74" cy="53.7" r="1.5" fill="#fff"/>`;
     const mouth = mood === "rough"
-      ? `<path d="M55 72 q6 -5 12 0" fill="none" stroke="#B75C6B" stroke-width="2.2" stroke-linecap="round"/>`
+      ? `<path d="M56 72q5-4 10 0" fill="none" stroke="#A85D6D" stroke-width="2.3" stroke-linecap="round"/>`
       : mood === "good"
-        ? `<path d="M55 69 q6 9 12 0" fill="none" stroke="#B75C6B" stroke-width="2.5" stroke-linecap="round"/>`
-        : `<path d="M57 70 q4 5 8 0" fill="none" stroke="#B75C6B" stroke-width="2.2" stroke-linecap="round"/>`;
-
-    const bodyColor = mood === "rough" ? "#7C6B87" : mood === "good" ? "#F08A35" : "#D9B38C";
-    const accent = mood === "rough" ? "#AAB8D8" : mood === "good" ? "#FFD45C" : "#F2C4A0";
-    const armPose = mood === "rough"
-      ? `<path d="M35 101 Q25 112 40 119" fill="none" stroke="${bodyColor}" stroke-width="10" stroke-linecap="round"/><path d="M84 101 Q95 112 80 119" fill="none" stroke="${bodyColor}" stroke-width="10" stroke-linecap="round"/>`
-      : mood === "good"
-        ? `<path d="M36 100 Q18 88 24 70" fill="none" stroke="${bodyColor}" stroke-width="10" stroke-linecap="round"/><path d="M83 100 Q101 88 95 70" fill="none" stroke="${bodyColor}" stroke-width="10" stroke-linecap="round"/>`
-        : `<path d="M36 101 Q24 103 25 114" fill="none" stroke="${bodyColor}" stroke-width="10" stroke-linecap="round"/><path d="M83 101 Q95 103 94 114" fill="none" stroke="${bodyColor}" stroke-width="10" stroke-linecap="round"/>`;
+        ? `<path d="M55 69q6 8 12 0" fill="none" stroke="#A85D6D" stroke-width="2.5" stroke-linecap="round"/>`
+        : `<path d="M57 70q4 4 8 0" fill="none" stroke="#A85D6D" stroke-width="2.2" stroke-linecap="round"/>`;
+    const hoodie = mood === "rough" ? "#747A9B" : mood === "good" ? "#D98738" : "#B99376";
+    const shirt = "#F4E6DA";
+    const accent = mood === "rough" ? "#B8C5E5" : mood === "good" ? "#FFD05B" : "#E8B89C";
+    const arms = mood === "good"
+      ? `<path d="M39 101c-12-7-16-18-9-28M81 101c12-7 16-18 9-28" fill="none" stroke="${hoodie}" stroke-width="10" stroke-linecap="round"/>`
+      : `<path d="M39 101c-8 4-11 11-8 17M81 101c8 4 11 11 8 17" fill="none" stroke="${hoodie}" stroke-width="10" stroke-linecap="round"/>`;
 
     return `
-      <svg class="${sizeClass} buddy-${mood}" viewBox="0 0 120 150" role="img" aria-label="${esc(buddyName())} the ${gender === "girl" ? "girl" : "boy"} motivation buddy">
-        <ellipse cx="60" cy="142" rx="38" ry="6" fill="var(--ink-light)" opacity=".12"/>
-        <path d="M39 103 Q60 92 81 103 L87 137 Q60 146 33 137Z" fill="${bodyColor}"/>
-        <path d="M49 104 Q60 112 71 104" fill="none" stroke="${accent}" stroke-width="3" stroke-linecap="round"/>
-        ${armPose}
-        <circle cx="60" cy="56" r="30" fill="#FFD8BD"/>
-        ${buddyHair(gender)}
-        ${eyeStyle}
-        <circle cx="37" cy="67" r="5" fill="#F59AA7" opacity=".28"/>
-        <circle cx="83" cy="67" r="5" fill="#F59AA7" opacity=".28"/>
+      <svg class="${cls} buddy-${mood}" viewBox="0 0 120 150" role="img" aria-label="${esc(buddyName())}, motivation buddy">
+        <ellipse cx="60" cy="142" rx="30" ry="5" fill="#000" opacity=".10"/>
+        <path d="M39 97Q60 88 81 97l6 38q-27 10-54 0Z" fill="${hoodie}"/>
+        <path d="M47 98q13 12 26 0v17H47Z" fill="${shirt}"/>
+        ${arms}
+        <circle cx="60" cy="55" r="30" fill="#FFD9C0"/>
+        ${hair}
+        ${eyes}
+        <circle cx="37" cy="67" r="5" fill="#E996A5" opacity=".22"/>
+        <circle cx="83" cy="67" r="5" fill="#E996A5" opacity=".22"/>
         ${mouth}
-        <path d="M48 85 Q60 92 72 85" fill="none" stroke="#FFD8BD" stroke-width="5" stroke-linecap="round"/>
-        <path d="M43 101 Q60 111 77 101" fill="none" stroke="${accent}" stroke-width="3" stroke-linecap="round" opacity=".9"/>
-        ${mood === "rough" ? `<circle cx="98" cy="38" r="8" fill="#9DB0D7" opacity=".35"/><path d="M98 28 v20 M88 38 h20" stroke="#BFD0EF" stroke-width="2" opacity=".6"/>` : ""}
-        ${mood === "good" ? `<path d="M98 42 l4 9 10 1-8 6 2 10-8-5-8 5 2-10-8-6 10-1Z" fill="#FFD45C" opacity=".9"/>` : ""}
+        <path d="M47 96q13 8 26 0" fill="none" stroke="${accent}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M43 137q17 5 34 0" fill="none" stroke="#343344" stroke-width="8" stroke-linecap="round"/>
+        ${mood === "good" ? `<path d="M98 37l3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z" fill="#FFD05B"/>` : ""}
+        ${mood === "rough" ? `<path d="M99 31v15M92 38h14" stroke="#B8C5E5" stroke-width="2" stroke-linecap="round" opacity=".55"/>` : ""}
       </svg>
     `;
   }
@@ -2072,12 +2077,12 @@
     const mood = buddyMood();
     const cfg = BUDDY_MOOD[mood];
     return `
-      <div class="buddy-card">
-        <div class="buddy-row">
-          <div class="buddy-art-wrap">${buddySvg(buddyGender(), mood)}</div>
+      <div class="buddy-card mood-${mood}">
+        <div class="buddy-card-inner">
+          <div class="buddy-character-stage">${buddySvg(buddyGender(), mood)}</div>
           <div class="buddy-copy">
             <div class="buddy-kicker">${cfg.kicker}</div>
-            <div class="buddy-name">${esc(buddyName())} <span aria-hidden="true">✨</span></div>
+            <div class="buddy-name">${esc(buddyName())} <span aria-hidden="true">✦</span></div>
             <div class="buddy-mood-chip">${cfg.emoji} ${cfg.label}</div>
             <div class="buddy-message">${esc(cfg.message(buddyName()))}</div>
             <button id="buddyActionBtn" class="buddy-action">${cfg.button}</button>
@@ -2142,38 +2147,6 @@
         <button id="changeBuddyBtn">Change my buddy</button>
       </div>
     `;
-  }
-
-  function updateFloatingBuddy() {
-    const host = document.getElementById("buddyFloating");
-    if (!host || !saved || !saved.buddy || !saved.buddy.name) {
-      if (host) host.style.display = "none";
-      return;
-    }
-    host.style.display = "flex";
-    host.innerHTML = buddySvg(buddyGender(), buddyMood(), true);
-    host.title = `${buddyName()} — Motivation Buddy`;
-    host.onclick = () => {
-      if (activeTab !== "today") {
-        activeTab = "today";
-        mobileMenuOpen = false;
-        render();
-      }
-      setTimeout(() => {
-        const el = document.querySelector(".buddy-card");
-        if (el) el.scrollIntoView({behavior:"smooth", block:"center"});
-      }, 60);
-    };
-  }
-
-  function showBuddyMoodBurst(mood) {
-    const host = document.getElementById("buddyMoodBurst");
-    if (!host || !BUDDY_MOOD[mood]) return;
-    host.innerHTML = `<div class="buddy-burst-card">${BUDDY_MOOD[mood].burst}</div>`;
-    host.classList.remove("show");
-    void host.offsetWidth;
-    host.classList.add("show");
-    setTimeout(() => { host.classList.remove("show"); host.innerHTML = ""; }, 1100);
   }
 
   function beginBuddyChange() {
@@ -2466,7 +2439,6 @@
         setTodaysMood(nextMood);
         session = newTask();
         rerender();
-        setTimeout(() => showBuddyMoodBurst(nextMood), 60);
       });
     });
 
@@ -2524,6 +2496,7 @@
         doneMap[id] = true;
         logCompletion(slot.text, parseInt(slot.minutes, 10) || 0);
         persist();
+        if (window.KPCompanion) window.KPCompanion.celebrate("task");
         rerender();
       });
     });
@@ -3046,6 +3019,7 @@
 
   function completeTask() {
     logCompletion(session.text, session.minutes);
+    if (window.KPCompanion) window.KPCompanion.celebrate("task");
     render({ quote: pick(quotePoolForMood(todaysMood())) });
   }
 
@@ -3093,14 +3067,180 @@
   render = function() {
     const result = _kpOriginalRender.apply(this, arguments);
     if (activeTab === "today") setTimeout(animateNewTask, 0);
-    setTimeout(updateFloatingBuddy, 0);
+    
     return result;
   };
 
 
   init();
 })();
-</script>
-</div></div>
+
+/* ===== Premium animated Daily Companion ===== */
+(function(){
+  const stage=document.getElementById("floatingBuddyStage");
+  const canvas=document.getElementById("floatingBuddyCanvas");
+  const bubble=document.getElementById("floatingBuddyBubble");
+  if(!stage||!canvas||!bubble) return;
+  const ctx=canvas.getContext("2d");
+  const S={x:0,y:0,tx:0,ty:0,vx:0,vy:0,last:0,nextMove:0,nextBlink:0,blink:0,gesture:"idle",gestureT:0,bubbleT:0};
+
+  function hasBuddy(){return !!(window.saved&&saved.buddy&&saved.buddy.name)}
+  function gender(){return hasBuddy()&&saved.buddy.gender==="boy"?"boy":"girl"}
+  function name(){return hasBuddy()?saved.buddy.name:"Buddy"}
+  function mood(){try{return buddyMood()}catch(e){return"okay"}}
+
+  function resize(){
+    const d=Math.min(devicePixelRatio||1,2),w=220,h=270;
+    canvas.style.width=w+"px";canvas.style.height=h+"px";
+    canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);
+  }
+  function target(){
+    const w=innerWidth,h=innerHeight,cw=w<700?165:220,ch=w<700?205:270;
+    const lanes=[
+      [12,Math.max(72,h-ch-20)],
+      [Math.max(12,w-cw-18),Math.max(72,h-ch-20)],
+      [Math.max(12,w-cw-22),86],[18,86]
+    ];
+    const q=lanes[Math.floor(Math.random()*lanes.length)];
+    S.tx=Math.max(8,Math.min(w-cw-8,q[0]+Math.random()*32-16));
+    S.ty=Math.max(68,Math.min(h-ch-12,q[1]+Math.random()*38-19));
+    S.nextMove=performance.now()+6200+Math.random()*4800;
+  }
+  function say(text,ms=3300){
+    if(!hasBuddy())return;
+    bubble.textContent=text;bubble.classList.add("show");
+    clearTimeout(S.bubbleT);S.bubbleT=setTimeout(()=>bubble.classList.remove("show"),ms);
+  }
+  function event(kind){
+    if(!hasBuddy())return;
+    const n=name();
+    const messages={
+      welcome:`Hi! I'm ${n}. Ready to make today count?`,
+      task:`Nice work! One step done. ✨`,
+      rough:`It's okay. Let's take one tiny step together.`,
+      many:`We've got this. Just one task at a time.`,
+      all:`You did it! Today is complete! 🎉`,
+      good:`You're doing great. Keep going!`,
+      idle:`I'm right here with you. 💛`
+    };
+    S.gesture=kind==="all"?"celebrate":kind==="task"?"happy":kind==="welcome"?"wave":kind==="rough"?"comfort":"idle";
+    S.gestureT=kind==="all"?2600:1800;
+    say(messages[kind]||messages.idle,kind==="all"?4200:3200);
+    target();
+  }
+  window.KPCompanion={
+    celebrate(kind="task"){event(kind)},
+    welcome(){event("welcome")},
+    rough(){event("rough")},
+    many(){event("many")},
+    idle(){event("idle")}
+  };
+
+  function ellipse(x,y,rx,ry,fill,rot=0){
+    ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.fillStyle=fill;
+    ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+  function line(x1,y1,x2,y2,c,w){
+    ctx.strokeStyle=c;ctx.lineWidth=w;ctx.lineCap="round";
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  }
+
+  function draw(now){
+    const m=mood(),g=gender();
+    ctx.clearRect(0,0,220,270);
+    ctx.save();ctx.translate(110,145);
+    const breathe=Math.sin(now*.0022)*1.8,floatY=Math.sin(now*.0017)*3;
+    const gesture=S.gesture,active=S.gestureT>0;
+    const hoodie=m==="good"?"#D98C3C":m==="rough"?"#747B9D":"#B99278";
+    const hoodieLight=m==="good"?"#F0B15B":m==="rough"?"#949BBB":"#D4B29B";
+    const skin="#FFD9C0",hair="#30283A",dark="#343344";
+
+    ellipse(0,112,46,7,"rgba(0,0,0,.12)");
+    const legSwing=active&&gesture==="celebrate"?Math.sin(now*.012)*10:Math.sin(now*.0011)*1.2;
+    line(-13,68,-18+legSwing,105,dark,11);line(13,68,18-legSwing,105,dark,11);
+
+    ctx.fillStyle=hoodie;ctx.beginPath();ctx.roundRect(-35,-2,70,76,23);ctx.fill();
+    ctx.fillStyle=hoodieLight;ctx.globalAlpha=.45;ctx.beginPath();ctx.roundRect(-29,8,58,54,18);ctx.fill();ctx.globalAlpha=1;
+    line(-8,4,0,17,"#F6E8DC",3);line(8,4,0,17,"#F6E8DC",3);
+
+    let la=[-31,18],ra=[31,18];
+    if(gesture==="wave"&&active){la=[-37,18];ra=[39,-2]}
+    else if(gesture==="celebrate"&&active){la=[-45,-7];ra=[45,-7]}
+    else if(gesture==="comfort"&&active){la=[-40,31];ra=[40,31]}
+    line(-31,18,la[0],la[1],hoodie,12);line(31,18,ra[0],ra[1],hoodie,12);
+    ellipse(la[0],la[1],6,6,skin);ellipse(ra[0],ra[1],6,6,skin);
+
+    ctx.save();ctx.translate(Math.sin(now*.0011)*1.2,floatY+breathe-28);
+    ellipse(0,0,32,32,skin);
+
+    ctx.fillStyle=hair;ctx.beginPath();
+    if(g==="girl"){
+      ctx.moveTo(-32,2);ctx.quadraticCurveTo(-37,-37,-8,-51);ctx.quadraticCurveTo(18,-62,34,-36);
+      ctx.quadraticCurveTo(36,-17,28,5);ctx.quadraticCurveTo(21,-20,11,-29);
+      ctx.quadraticCurveTo(0,-19,-12,-30);ctx.quadraticCurveTo(-23,-22,-32,2);ctx.fill();
+      line(-28,-3,-36,28,hair,8);line(28,-3,36,28,hair,8);
+      ctx.fillStyle="#E8A05B";ctx.beginPath();ctx.moveTo(19,-42);ctx.quadraticCurveTo(39,-54,38,-34);ctx.quadraticCurveTo(30,-27,19,-35);ctx.fill();
+      ctx.beginPath();ctx.moveTo(19,-42);ctx.quadraticCurveTo(2,-54,3,-35);ctx.quadraticCurveTo(10,-27,19,-35);ctx.fill();
+    }else{
+      ctx.moveTo(-32,3);ctx.quadraticCurveTo(-34,-43,-5,-51);ctx.quadraticCurveTo(24,-58,34,-28);
+      ctx.quadraticCurveTo(18,-38,7,-42);ctx.quadraticCurveTo(-8,-28,-32,3);ctx.fill();
+    }
+
+    if(S.blink>0){
+      line(-18,1,-9,1,"#292331",2.5);line(9,1,18,1,"#292331",2.5);
+    }else{
+      ellipse(-13,0,5,7,"#292331");ellipse(13,0,5,7,"#292331");
+      ellipse(-11.5,-2,1.6,2,"#fff");ellipse(14.5,-2,1.6,2,"#fff");
+    }
+    ellipse(-23,13,6,4,"rgba(232,120,145,.22)");ellipse(23,13,6,4,"rgba(232,120,145,.22)");
+
+    ctx.strokeStyle="#A85D6D";ctx.lineWidth=2.6;ctx.lineCap="round";ctx.beginPath();
+    if(m==="rough")ctx.quadraticCurveTo(0,20,7,18);
+    else if(gesture==="celebrate"||m==="good")ctx.quadraticCurveTo(0,29,9,18);
+    else ctx.quadraticCurveTo(0,23,7,19);ctx.stroke();
+    ctx.restore();
+
+    if(m==="good"||gesture==="celebrate"){
+      const p=(Math.sin(now*.004)+1)/2;ctx.globalAlpha=.35+.35*p;ctx.fillStyle="#FFD05B";
+      for(let i=0;i<5;i++){const a=now*.0005+i*1.25,r=67+(i%2)*8;ctx.beginPath();ctx.arc(Math.cos(a)*r,Math.sin(a)*r-8,2.2+(i%2),0,Math.PI*2);ctx.fill()}
+      ctx.globalAlpha=1;
+    }
+    if(gesture==="celebrate"&&active){
+      for(let i=0;i<4;i++){const a=now*.001+i*Math.PI/2;line(Math.cos(a)*48,Math.sin(a)*48-5,Math.cos(a)*60,Math.sin(a)*60-5,"#FFD05B",2.5)}
+    }
+    ctx.restore();
+  }
+
+  function place(){
+    canvas.style.transform=`translate3d(${S.x}px,${S.y}px,0)`;
+    const bw=205,right=S.x>innerWidth/2;
+    const left=right?S.x-bw+40:S.x+105,top=Math.max(68,S.y+28);
+    bubble.style.transform=`translate3d(${Math.max(8,Math.min(innerWidth-bw-8,left))}px,${top}px,0)`;
+  }
+
+  function frame(now){
+    const dt=Math.min(32,now-(S.last||now));S.last=now;
+    if(!hasBuddy()){stage.style.display="none";requestAnimationFrame(frame);return}
+    stage.style.display="block";
+    if(now>S.nextMove)target();
+    const ax=(S.tx-S.x)*.00065*dt,ay=(S.ty-S.y)*.00065*dt;
+    S.vx=(S.vx+ax)*.955;S.vy=(S.vy+ay)*.955;S.x+=S.vx*dt;S.y+=S.vy*dt;
+    const cw=innerWidth<700?165:220,ch=innerWidth<700?205:270;
+    S.x=Math.max(6,Math.min(innerWidth-cw-6,S.x));S.y=Math.max(68,Math.min(innerHeight-ch-12,S.y));
+    if(now>S.nextBlink){S.blink=1;S.nextBlink=now+2300+Math.random()*3600}
+    if(S.blink>0)S.blink-=dt/120;
+    if(S.gestureT>0)S.gestureT-=dt;else S.gesture="idle";
+    draw(now);place();requestAnimationFrame(frame);
+  }
+
+  function start(){
+    resize();S.x=innerWidth<700?innerWidth-185:innerWidth-245;S.y=Math.max(80,innerHeight*.45);
+    S.tx=S.x;S.ty=S.y;S.nextMove=performance.now()+1800;S.nextBlink=performance.now()+2400;
+    requestAnimationFrame(frame);
+    setTimeout(()=>{if(hasBuddy())window.KPCompanion.welcome()},1200);
+  }
+  window.addEventListener("resize",resize,{passive:true});
+  setTimeout(start,700);
+})();
 </body>
 </html>
