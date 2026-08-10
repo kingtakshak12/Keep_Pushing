@@ -3063,6 +3063,14 @@
     setInterval(runReminderChecks, 60000);
     initCloud();
   }
+  // Public read-only accessors for the floating companion.
+  window.KPGetBuddy = function () {
+    return (saved && saved.buddy) ? saved.buddy : null;
+  };
+  window.KPGetMood = function () {
+    try { return todaysMood ? todaysMood() : "okay"; } catch (e) { return "okay"; }
+  };
+
   const _kpOriginalRender = render;
   render = function() {
     const result = _kpOriginalRender.apply(this, arguments);
@@ -3084,10 +3092,10 @@
   const ctx=canvas.getContext("2d");
   const S={x:0,y:0,tx:0,ty:0,vx:0,vy:0,last:0,nextMove:0,nextBlink:0,blink:0,gesture:"idle",gestureT:0,bubbleT:0};
 
-  function hasBuddy(){return !!(window.saved&&saved.buddy&&saved.buddy.name)}
-  function gender(){return hasBuddy()&&saved.buddy.gender==="boy"?"boy":"girl"}
-  function name(){return hasBuddy()?saved.buddy.name:"Buddy"}
-  function mood(){try{return buddyMood()}catch(e){return"okay"}}
+  function hasBuddy(){const b=window.KPGetBuddy&&window.KPGetBuddy();return !!(b&&b.name)}
+  function gender(){const b=window.KPGetBuddy&&window.KPGetBuddy();return b&&b.gender==="boy"?"boy":"girl"}
+  function name(){const b=window.KPGetBuddy&&window.KPGetBuddy();return b&&b.name?b.name:"Buddy"}
+  function mood(){try{return window.KPGetMood?window.KPGetMood():"okay"}catch(e){return"okay"}}
 
   function resize(){
     const d=Math.min(devicePixelRatio||1,2),w=220,h=270;
@@ -3242,5 +3250,6 @@
   window.addEventListener("resize",resize,{passive:true});
   setTimeout(start,700);
 })();
+</script>
 </body>
 </html>
