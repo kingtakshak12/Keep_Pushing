@@ -359,6 +359,14 @@
   }
 </style>
 </style>
+<style id="buddy-existing-account-fix">
+  .buddy-cloud-note{margin-top:10px;font-size:12px;line-height:1.45;color:rgba(255,255,255,.62)}
+</style>
+<style id="buddy-floating-style">
+#buddyFloating{position:fixed;right:18px;bottom:82px;z-index:9000;display:none;width:58px;height:58px;border-radius:50%;border:1px solid var(--line);background:var(--bg-panel);box-shadow:0 10px 26px rgba(0,0,0,.18);cursor:pointer;align-items:center;justify-content:center;overflow:hidden;animation:buddyFloatButton 2.8s ease-in-out infinite}
+#buddyFloating svg{width:58px;height:70px}
+@keyframes buddyFloatButton{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+</style>
 </head>
 <body>
 <div class="frame-outer"><div class="frame-box">
@@ -367,6 +375,7 @@
 <div id="toastLayer" aria-live="polite"></div>
 <div id="kpCelebration" aria-hidden="true"></div>
 <div id="buddyMoodBurst" aria-hidden="true"></div>
+<div id="buddyFloating" aria-label="Open your Motivation Buddy"></div>
 <style id="enhanced-animations">
   /* === Keep Pushing — enhanced motion layer === */
   @keyframes kpFadeUp {
@@ -1160,6 +1169,10 @@
         saved = mergeSaved(saved, cloudData);
         deriveStatsFromHistory(saved);
         try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+
+        // Existing signed-in accounts get the new buddy setup without
+        // creating another account or requiring sign-out.
+        if (!saved.buddy || !saved.buddy.name || !saved.buddy.gender) saved.buddy = null;
         await pushToCloud();
       } else {
         await pushToCloud();
@@ -2082,7 +2095,7 @@
         <div class="buddy-onboarding-card">
           <div class="buddy-sparkle">✨</div>
           <h2>Let's meet your Motivation Buddy!</h2>
-          <p>Your buddy will cheer you on, react to your mood, celebrate your wins and stay with you through rough days.</p>
+          <p>Your existing account is safe. This only adds your new Motivation Buddy to the account you already use.</p>
 
           <div style="font-weight:800; font-size:14px; margin-bottom:8px;">Choose your buddy</div>
           <div class="buddy-gender-grid">
@@ -2131,6 +2144,28 @@
     `;
   }
 
+  function updateFloatingBuddy() {
+    const host = document.getElementById("buddyFloating");
+    if (!host || !saved || !saved.buddy || !saved.buddy.name) {
+      if (host) host.style.display = "none";
+      return;
+    }
+    host.style.display = "flex";
+    host.innerHTML = buddySvg(buddyGender(), buddyMood(), true);
+    host.title = `${buddyName()} — Motivation Buddy`;
+    host.onclick = () => {
+      if (activeTab !== "today") {
+        activeTab = "today";
+        mobileMenuOpen = false;
+        render();
+      }
+      setTimeout(() => {
+        const el = document.querySelector(".buddy-card");
+        if (el) el.scrollIntoView({behavior:"smooth", block:"center"});
+      }, 60);
+    };
+  }
+
   function showBuddyMoodBurst(mood) {
     const host = document.getElementById("buddyMoodBurst");
     if (!host || !BUDDY_MOOD[mood]) return;
@@ -2170,7 +2205,7 @@
     }
 
     const create = document.getElementById("createBuddyBtn");
-    if (create) create.addEventListener("click", () => {
+    if (create) create.addEventListener("click", async () => {
       const name = (document.getElementById("buddyNameInput")?.value || "").trim();
       if (!name) {
         const err = document.getElementById("buddyNameError");
@@ -2181,9 +2216,14 @@
       saved.buddy = {
         gender: onboardingBuddy.gender === "girl" ? "girl" : "boy",
         name: onboardingBuddy.name,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        version: 1
       };
       persist();
+      if (fbUser) {
+        cloudStatus = "syncing";
+        await pushToCloud();
+      }
       session = newTask();
       render();
       setTimeout(() => notify(`Meet ${buddyName()}! ✨`, `${buddyName()} is ready to cheer you on.`), 250);
@@ -2742,6 +2782,12 @@
     if (!local) return incoming;
     const merged = Object.assign({}, incoming, local); // local wins for any plain/unhandled field
 
+    // Buddy migration: never erase a buddy because an older cloud record
+    // does not yet contain the new buddy field.
+    if (local.buddy && local.buddy.name) merged.buddy = local.buddy;
+    else if (incoming.buddy && incoming.buddy.name) merged.buddy = incoming.buddy;
+    else merged.buddy = null;
+
     merged.startDate = (local.startDate && incoming.startDate)
       ? (local.startDate < incoming.startDate ? local.startDate : incoming.startDate)
       : (local.startDate || incoming.startDate);
@@ -3047,6 +3093,7 @@
   render = function() {
     const result = _kpOriginalRender.apply(this, arguments);
     if (activeTab === "today") setTimeout(animateNewTask, 0);
+    setTimeout(updateFloatingBuddy, 0);
     return result;
   };
 
