@@ -2847,6 +2847,12 @@ html,body{
   let saved = null;
   let session = null;
   let timerHandle = null;
+  let taskLockRelease = null;
+  let taskLockHeartbeat = null;
+  const taskLockOwner = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const TASK_LOCK_KEY = `${KEY}:activeTaskLock`;
+  const TASK_LOCK_TTL = 15000;
+  const taskLockChannel = ("BroadcastChannel" in window) ? new BroadcastChannel("keep-pushing-task-lock") : null;
   let activeTab = "today";
   let scheduleView = null;
   let mobileMenuOpen = false;
@@ -2888,6 +2894,14 @@ html,body{
   let cloudStatus = CLOUD_CONFIGURED ? "loading" : "unconfigured"; // loading|signed-out|syncing|synced|conflict|error
   let cloudError = "";
   let cloudSaveTimer = null;
+
+  // Cross-device task lock (Firestore). The lock lives on the signed-in
+  // user's document so it is shared by every browser/device using the account.
+  let cloudTaskLockOwned = false;
+  let cloudTaskLockHeartbeat = null;
+  const CLOUD_TASK_LOCK_TTL = 120000; // 2 minutes; heartbeat refreshes it.
+  const CLOUD_TASK_LOCK_HEARTBEAT = 30000;
+  const cloudTaskLockId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
   function rerenderGlobal() { render(lastRenderOpts); }
 
@@ -2948,7 +2962,7 @@ html,body{
   async function pushToCloud() {
     if (!fbUser || !fbDb) return;
     try {
-      await FsLib.setDoc(FsLib.doc(fbDb, "users", fbUser.uid), { payload: JSON.stringify(saved), updatedAt: Date.now() });
+      await FsLib.setDoc(FsLib.doc(fbDb, "users", fbUser.uid), { payload: JSON.stringify(saved), updatedAt: Date.now() }, { merge: true });
       cloudStatus = "synced";
     } catch (e) {
       console.error(e);
@@ -2962,6 +2976,142 @@ html,body{
     cloudStatus = "syncing";
     clearTimeout(cloudSaveTimer);
     cloudSaveTimer = setTimeout(() => { pushToCloud().then(rerenderGlobal); }, 1200);
+  }
+
+
+  // ============================================================
+  // FIRESTORE ACCOUNT-LEVEL TASK LOCK
+  // A transaction makes "check then claim" atomic. This prevents
+  // the same signed-in account from starting the task on another
+  // phone, laptop, browser, or tab at the same time.
+  // ============================================================
+  async function acquireCloudTaskLock() {
+    if (!fbUser || !fbDb || !FsLib) return { ok: true, cloud: false };
+
+    const ref = FsLib.doc(fbDb, "users", fbUser.uid);
+    const now = Date.now();
+    const expiresAt = now + CLOUD_TASK_LOCK_TTL;
+
+    try {
+      const result = await FsLib.runTransaction(fbDb, async (tx) => {
+        const snap = await tx.get(ref);
+        const data = snap.exists() ? (snap.data() || {}) : {};
+        const existing = data.taskLock || null;
+
+        if (
+          existing &&
+          existing.owner &&
+          existing.owner !== cloudTaskLockId &&
+          Number(existing.expiresAt || 0) > now
+        ) {
+          return {
+            ok: false,
+            expiresAt: Number(existing.expiresAt || 0)
+          };
+        }
+
+        const taskLock = {
+          owner: cloudTaskLockId,
+          startedAt: now,
+          expiresAt,
+          device: `${navigator.platform || "device"}`
+        };
+
+        tx.set(ref, { taskLock }, { merge: true });
+        return { ok: true };
+      });
+
+      if (!result.ok) return result;
+
+      cloudTaskLockOwned = true;
+      clearInterval(cloudTaskLockHeartbeat);
+      cloudTaskLockHeartbeat = setInterval(refreshCloudTaskLock, CLOUD_TASK_LOCK_HEARTBEAT);
+      return { ok: true, cloud: true };
+    } catch (e) {
+      console.error("Cloud task lock failed", e);
+      // Do not silently claim the account lock if Firestore is unavailable.
+      // If the user is signed in, cross-device exclusivity cannot be proven.
+      return { ok: false, unavailable: true };
+    }
+  }
+
+  async function refreshCloudTaskLock() {
+    if (!cloudTaskLockOwned || !fbUser || !fbDb || !FsLib) return;
+
+    const ref = FsLib.doc(fbDb, "users", fbUser.uid);
+    const now = Date.now();
+    const expiresAt = now + CLOUD_TASK_LOCK_TTL;
+
+    try {
+      await FsLib.runTransaction(fbDb, async (tx) => {
+        const snap = await tx.get(ref);
+        const data = snap.exists() ? (snap.data() || {}) : {};
+        const existing = data.taskLock || null;
+
+        if (!existing || existing.owner !== cloudTaskLockId) {
+          throw new Error("TASK_LOCK_LOST");
+        }
+
+        tx.set(ref, {
+          taskLock: {
+            ...existing,
+            expiresAt,
+            heartbeatAt: now
+          }
+        }, { merge: true });
+      });
+    } catch (e) {
+      console.warn("Task lock heartbeat stopped", e);
+      cloudTaskLockOwned = false;
+      clearInterval(cloudTaskLockHeartbeat);
+      cloudTaskLockHeartbeat = null;
+
+      if (session && session.running) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+        session.running = false;
+        notify("Task paused", "Your account task lock was lost. Please start again.");
+        render();
+        releaseTaskLock();
+      }
+    }
+  }
+
+  async function releaseCloudTaskLock() {
+    clearInterval(cloudTaskLockHeartbeat);
+    cloudTaskLockHeartbeat = null;
+
+    if (!cloudTaskLockOwned || !fbUser || !fbDb || !FsLib) {
+      cloudTaskLockOwned = false;
+      return;
+    }
+
+    const ref = FsLib.doc(fbDb, "users", fbUser.uid);
+    try {
+      await FsLib.runTransaction(fbDb, async (tx) => {
+        const snap = await tx.get(ref);
+        if (!snap.exists()) return;
+        const data = snap.data() || {};
+        const existing = data.taskLock || null;
+
+        // Only the owner may clear the lock.
+        if (existing && existing.owner === cloudTaskLockId) {
+          tx.update(ref, { taskLock: FsLib.deleteField() });
+        }
+      });
+    } catch (e) {
+      console.warn("Could not release cloud task lock", e);
+    } finally {
+      cloudTaskLockOwned = false;
+    }
+  }
+
+  function cloudTaskLockMessage(result) {
+    if (result && result.expiresAt) {
+      const seconds = Math.max(1, Math.ceil((result.expiresAt - Date.now()) / 1000));
+      return `This account is already running a task on another device. Try again in about ${seconds} seconds.`;
+    }
+    return "This account is already running a task on another device.";
   }
 
   function friendlyAuthError(e) {
@@ -2998,6 +3148,7 @@ html,body{
   }
 
   async function cloudSignOut() {
+    if (cloudTaskLockOwned) await releaseCloudTaskLock();
     if (AuthLib && fbAuth) await AuthLib.signOut(fbAuth);
     fbUser = null;
     cloudStatus = "signed-out";
@@ -4897,22 +5048,201 @@ html,body{
     requestAnimationFrame(frame);
   }
 
-  function startTimer() {
+
+  // ============================================================
+  // CROSS-TAB TASK LOCK
+  // Prevent the same user from running the daily task in two
+  // browser tabs/windows at the same time.
+  //
+  // Web Locks API is the primary mechanism. localStorage is a
+  // compatibility fallback and automatically expires if a tab dies.
+  // ============================================================
+  function broadcastTaskLock(type) {
+    try {
+      if (taskLockChannel) taskLockChannel.postMessage({ type, owner: taskLockOwner, at: Date.now() });
+    } catch (e) {}
+  }
+
+  function readTaskLock() {
+    try {
+      const raw = localStorage.getItem(TASK_LOCK_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function writeTaskLock() {
+    try {
+      localStorage.setItem(TASK_LOCK_KEY, JSON.stringify({
+        owner: taskLockOwner,
+        expiresAt: Date.now() + TASK_LOCK_TTL,
+        taskText: session && session.text ? session.text : ""
+      }));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function clearFallbackTaskLock() {
+    try {
+      const lock = readTaskLock();
+      if (!lock || lock.owner === taskLockOwner) localStorage.removeItem(TASK_LOCK_KEY);
+    } catch (e) {}
+    clearInterval(taskLockHeartbeat);
+    taskLockHeartbeat = null;
+    broadcastTaskLock("released");
+  }
+
+  async function acquireFallbackTaskLock() {
+    const current = readTaskLock();
+    if (current && current.owner !== taskLockOwner && current.expiresAt > Date.now()) {
+      return false;
+    }
+
+    // Best-effort atomic-ish claim for browsers without Web Locks.
+    // A second tab that sees our owner immediately will refuse to start.
+    if (!writeTaskLock()) return true;
+
+    const confirmed = readTaskLock();
+    if (!confirmed || confirmed.owner !== taskLockOwner) return false;
+
+    taskLockHeartbeat = setInterval(() => {
+      const mine = readTaskLock();
+      if (!mine || mine.owner !== taskLockOwner) {
+        clearFallbackTaskLock();
+        if (session) {
+          session.running = false;
+          render();
+        }
+        return;
+      }
+      writeTaskLock();
+    }, 4000);
+
+    broadcastTaskLock("acquired");
+    return true;
+  }
+
+  async function acquireTaskLock() {
+    // Web Locks gives true same-origin cross-tab mutual exclusion.
+    if (navigator.locks && navigator.locks.request) {
+      let acquired = false;
+      let release;
+      const hold = new Promise(resolve => { release = resolve; });
+
+      try {
+        await navigator.locks.request(
+          "keep-pushing-active-task",
+          { mode: "exclusive", ifAvailable: true },
+          async lock => {
+            if (!lock) return;
+            acquired = true;
+            taskLockRelease = release;
+            broadcastTaskLock("acquired");
+            await hold;
+          }
+        );
+        return acquired;
+      } catch (e) {
+        // Fall through to the localStorage compatibility lock.
+        acquired = false;
+      }
+    }
+
+    return acquireFallbackTaskLock();
+  }
+
+  function releaseTaskLock() {
+    if (taskLockRelease) {
+      const release = taskLockRelease;
+      taskLockRelease = null;
+      release();
+      broadcastTaskLock("released");
+    }
+    clearFallbackTaskLock();
+  }
+
+  function taskAlreadyRunningElsewhere() {
+    const lock = readTaskLock();
+    return !!(lock && lock.owner !== taskLockOwner && lock.expiresAt > Date.now());
+  }
+
+  if (taskLockChannel) {
+    taskLockChannel.addEventListener("message", e => {
+      if (!e.data || e.data.owner === taskLockOwner) return;
+      if (e.data.type === "acquired" && session && !session.running) {
+        showToast("Task in use", "This task is already running in another Keep Pushing tab.");
+      }
+    });
+  }
+
+  window.addEventListener("storage", e => {
+    if (e.key !== TASK_LOCK_KEY || !e.newValue) return;
+    try {
+      const lock = JSON.parse(e.newValue);
+      if (lock.owner !== taskLockOwner && lock.expiresAt > Date.now() && session && !session.running) {
+        showToast("Task in use", "This task is already running in another Keep Pushing tab.");
+      }
+    } catch (err) {}
+  });
+
+  async function startTimer() {
     if (session.running) return;
-    if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+
+    // First coordinate with the signed-in account across devices.
+    const cloudLock = await acquireCloudTaskLock();
+    if (!cloudLock.ok) {
+      if (cloudLock.unavailable) {
+        notify("Could not start safely", "Cloud task protection is temporarily unavailable. Please check your connection and try again.");
+      } else {
+        notify("Task already running", cloudTaskLockMessage(cloudLock));
+      }
+      return;
+    }
+
+    // Then protect against same-browser tabs/windows too.
+    const locked = await acquireTaskLock();
+    if (!locked) {
+      await releaseCloudTaskLock();
+      notify("Task already running", "This task is already running in another Keep Pushing tab or window.");
+      return;
+    }
+
+    if (session.running) {
+      releaseTaskLock();
+      await releaseCloudTaskLock();
+      return;
+    }
+
+    if (timerHandle) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+    }
+
     session.running = true;
     render();
+
     const endAt = Date.now() + session.secondsLeft * 1000;
+
     timerHandle = setInterval(() => {
       const remaining = Math.round((endAt - Date.now()) / 1000);
+
       if (remaining <= 0) {
         clearInterval(timerHandle);
+        timerHandle = null;
         session.secondsLeft = 0;
         session.running = false;
         session.finished = true;
-    celebrateCompletion();
+
+        celebrateCompletion();
         notify("Time's up", `Nice work — "${session.text}" is done.`);
+
+        // Complete the work first, then release both locks.
         completeTask();
+        releaseTaskLock();
+        releaseCloudTaskLock();
       } else {
         session.secondsLeft = remaining;
         const timerEl = app.querySelector(".timer");
@@ -5366,6 +5696,17 @@ html,body{
   const root=document.getElementById("app");
   if(root)o.observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:["class"]});
   homePolish();
+})();
+</script>
+
+
+<script id="kp-task-lock-cleanup">
+(function(){
+  window.addEventListener("pagehide",function(){
+    try{
+      localStorage.removeItem("keep-pushing12-activeTaskLock");
+    }catch(e){}
+  });
 })();
 </script>
 
