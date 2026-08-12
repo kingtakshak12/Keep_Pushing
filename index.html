@@ -651,6 +651,627 @@ button:disabled{box-shadow:none!important;}
 .loading{color:#667085!important;}
 </style>
 
+
+<style id="premium-redesign-v2">
+/* =========================================================
+   KEEP PUSHING PRO — dashboard + companion + mobile polish
+   ========================================================= */
+:root{
+  --kp-bg:#f4f7fb;
+  --kp-card:#ffffff;
+  --kp-card-soft:#f8fafc;
+  --kp-text:#182230;
+  --kp-muted:#667085;
+  --kp-subtle:#98a2b3;
+  --kp-border:#e6ebf2;
+  --kp-orange:#ff7043;
+  --kp-orange-2:#ff9a62;
+  --kp-green:#16a394;
+  --kp-purple:#6d5dfc;
+  --kp-shadow:0 12px 34px rgba(16,24,40,.065);
+}
+
+/* App background */
+.app-shell{
+  background:
+    radial-gradient(800px 360px at 80% -10%,rgba(255,112,67,.10),transparent 65%),
+    radial-gradient(600px 300px at -10% 25%,rgba(109,93,252,.055),transparent 65%),
+    var(--kp-bg)!important;
+}
+
+/* Header becomes a compact product header */
+.app-header{
+  position:relative;
+  padding:20px 28px 18px!important;
+  background:rgba(255,255,255,.82)!important;
+  backdrop-filter:blur(20px)!important;
+}
+.app-header:after{
+  content:"";
+  position:absolute;left:28px;right:28px;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,transparent,#e7ebf2,transparent);
+}
+.app-header .eyebrow{
+  text-align:left!important;
+  max-width:1000px;margin:0 auto!important;
+}
+.app-header .title{
+  text-align:left!important;
+  max-width:1000px;margin:4px auto!important;
+  font-size:25px!important;
+}
+.app-header .stats-row{
+  max-width:1000px;margin:12px auto 0!important;
+}
+
+/* Desktop sidebar */
+@media(min-width:720px){
+  .app-tabbar{
+    width:204px!important;
+    flex-basis:204px!important;
+    padding:24px 14px!important;
+    background:rgba(255,255,255,.86)!important;
+    backdrop-filter:blur(18px)!important;
+  }
+  .app-tabbar:before{
+    content:"KEEP PUSHING";
+    display:block;
+    font-size:11px;font-weight:900;letter-spacing:.13em;
+    color:#98a2b3;padding:0 14px 18px;
+  }
+  .tab-btn{
+    min-height:44px!important;
+    margin:3px 0!important;
+    border-radius:13px!important;
+  }
+  .tab-btn.active{
+    box-shadow:inset 3px 0 0 #ff7043!important;
+  }
+}
+
+/* Main dashboard width */
+.app-main{padding:26px 34px 40px!important;}
+#app .content{
+  max-width:1040px!important;
+  padding:18px 4px 70px!important;
+}
+
+/* Make the Today screen feel like a dashboard */
+#app .content > .section:first-of-type{
+  padding-top:8px!important;
+}
+#app .content > .section{
+  margin-bottom:4px!important;
+}
+
+/* Stats become KPI tiles */
+.stats-row{
+  gap:12px!important;
+}
+.stat{
+  position:relative;
+  overflow:hidden;
+  min-height:76px;
+  padding:14px 12px!important;
+  border:1px solid var(--kp-border)!important;
+  box-shadow:var(--kp-shadow)!important;
+}
+.stat:after{
+  content:"";
+  position:absolute;right:-18px;top:-18px;
+  width:58px;height:58px;border-radius:50%;
+  background:rgba(255,112,67,.08);
+}
+.stat .num{position:relative;z-index:1;font-size:23px!important;}
+.stat .label{position:relative;z-index:1;}
+
+/* Buddy = hero companion */
+.buddy-card{
+  min-height:220px!important;
+  padding:24px!important;
+  border:1px solid rgba(255,112,67,.14)!important;
+  background:
+    radial-gradient(circle at 8% 20%,rgba(255,154,98,.20),transparent 30%),
+    radial-gradient(circle at 92% 90%,rgba(109,93,252,.08),transparent 34%),
+    linear-gradient(135deg,#fff,#fff8f4)!important;
+  box-shadow:0 18px 48px rgba(255,112,67,.10),var(--kp-shadow)!important;
+}
+.buddy-card-inner{
+  display:flex!important;
+  align-items:center!important;
+  gap:24px!important;
+  position:relative;z-index:1;
+}
+.buddy-character-stage{
+  flex:0 0 190px!important;
+  width:190px!important;
+  min-height:170px!important;
+  display:grid!important;
+  place-items:center!important;
+  position:relative;
+}
+.buddy-character-stage:before{
+  content:"";
+  position:absolute;
+  width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,112,67,.18),rgba(255,112,67,0) 70%);
+  animation:kpBuddyAura 3.2s ease-in-out infinite;
+}
+.buddy-character{
+  position:relative;z-index:1;
+  width:150px!important;height:170px!important;
+  filter:drop-shadow(0 15px 18px rgba(24,34,48,.12));
+  animation:kpBuddyFloat 3.4s ease-in-out infinite;
+}
+.buddy-copy{padding:4px 0!important;}
+.buddy-kicker{
+  display:inline-flex!important;
+  padding:6px 9px!important;
+  border-radius:999px!important;
+  background:#fff0e9!important;
+  color:#e85d2d!important;
+  letter-spacing:.05em!important;
+}
+.buddy-name{
+  font-size:27px!important;
+  letter-spacing:-.03em!important;
+  margin-top:8px!important;
+}
+.buddy-message{
+  max-width:560px!important;
+  font-size:15px!important;
+}
+.buddy-action{
+  margin-top:3px!important;
+  padding:11px 16px!important;
+}
+.buddy-mood-chip{
+  background:#f5f7fa!important;
+  border:1px solid #e8edf3!important;
+}
+@keyframes kpBuddyFloat{
+  0%,100%{transform:translateY(0) rotate(-1deg)}
+  50%{transform:translateY(-9px) rotate(1deg)}
+}
+@keyframes kpBuddyAura{
+  0%,100%{transform:scale(.9);opacity:.55}
+  50%{transform:scale(1.08);opacity:1}
+}
+
+/* Make boy/girl selection feel like character selection */
+.buddy-gender-btn{
+  position:relative!important;
+  min-height:175px!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04))!important;
+}
+.buddy-gender-btn.active{
+  transform:translateY(-2px)!important;
+}
+.buddy-gender-emoji{
+  filter:drop-shadow(0 8px 10px rgba(0,0,0,.16));
+  transition:transform .25s ease;
+}
+.buddy-gender-btn:hover .buddy-gender-emoji{
+  transform:translateY(-5px) scale(1.05);
+}
+
+/* Better onboarding */
+.buddy-onboarding{
+  background:
+    radial-gradient(circle at 15% 15%,rgba(255,112,67,.20),transparent 28%),
+    radial-gradient(circle at 85% 80%,rgba(109,93,252,.18),transparent 30%),
+    linear-gradient(145deg,#141827,#20273b)!important;
+}
+.buddy-onboarding-card{
+  max-width:620px!important;
+  border-radius:30px!important;
+}
+
+/* Task card = primary action */
+.task-card{
+  position:relative;
+  overflow:hidden;
+  min-height:240px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.task-card:before{
+  content:"";
+  position:absolute;left:-50px;top:-55px;
+  width:150px;height:150px;border-radius:50%;
+  background:rgba(255,112,67,.07);
+}
+.task-card > *{position:relative;z-index:1;}
+.task-text{max-width:650px;margin-left:auto;margin-right:auto;}
+.timer{
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 4px 18px rgba(255,112,67,.13);
+}
+
+/* Cleaner mood check-in */
+.mood-card{
+  background:linear-gradient(135deg,#fff,#fbfcff)!important;
+}
+.mood-btn{
+  border-radius:14px!important;
+  padding:13px 8px!important;
+}
+
+/* Quote becomes a daily insight */
+.quote-card{
+  position:relative;
+  padding:24px 26px!important;
+}
+.quote-card:before{
+  content:"Daily reminder";
+  display:block;
+  font-family:Inter,sans-serif;
+  font-size:10px;font-weight:900;
+  text-transform:uppercase;letter-spacing:.1em;
+  font-style:normal;color:#ff7043;
+  margin-bottom:8px;
+}
+
+/* Mobile: app-like bottom navigation */
+@media(max-width:719px){
+  html,body{background:#f4f7fb!important;}
+  .app-header{
+    padding:15px 16px 14px!important;
+  }
+  .app-header:after{left:16px;right:16px;}
+  .app-header .title{font-size:21px!important;}
+  .app-header .stats-row{
+    overflow-x:auto!important;
+    padding-bottom:3px!important;
+    scrollbar-width:none;
+  }
+  .app-header .stats-row::-webkit-scrollbar{display:none;}
+  .app-header .stat{
+    min-width:88px!important;
+    flex:0 0 88px!important;
+  }
+  .app-main{
+    padding:12px 12px 88px!important;
+  }
+  #app .content{padding:10px 0 92px!important;}
+  .buddy-card{
+    min-height:0!important;
+    padding:18px!important;
+  }
+  .buddy-card-inner{
+    gap:12px!important;
+    align-items:center!important;
+  }
+  .buddy-character-stage{
+    flex:0 0 105px!important;
+    width:105px!important;
+    min-height:135px!important;
+  }
+  .buddy-character{
+    width:105px!important;height:125px!important;
+  }
+  .buddy-character-stage:before{
+    width:105px;height:105px;
+  }
+  .buddy-name{font-size:21px!important;}
+  .buddy-message{font-size:13px!important;line-height:1.45!important;}
+  .buddy-stage-note{display:none!important;}
+  .buddy-action{font-size:11px!important;padding:9px 12px!important;}
+
+  /* Fixed bottom navigation, all tabs available by horizontal swipe */
+  .app-tabbar{
+    position:fixed!important;
+    top:auto!important;
+    bottom:0!important;
+    left:0!important;right:0!important;
+    width:100%!important;
+    height:72px!important;
+    max-height:none!important;
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:stretch!important;
+    gap:2px!important;
+    padding:7px 6px calc(7px + env(safe-area-inset-bottom))!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    border:0!important;
+    border-top:1px solid #e6ebf2!important;
+    border-radius:0!important;
+    box-shadow:0 -10px 30px rgba(16,24,40,.10)!important;
+    z-index:1000!important;
+    scrollbar-width:none;
+  }
+  .app-tabbar::-webkit-scrollbar{display:none;}
+  .tab-btn{
+    flex:0 0 76px!important;
+    min-width:76px!important;
+    height:56px!important;
+    margin:0!important;
+    padding:6px 5px!important;
+    border-radius:12px!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    align-items:center!important;
+    gap:3px!important;
+    font-size:10px!important;
+    font-weight:800!important;
+    white-space:nowrap!important;
+  }
+  .tab-btn .tab-icon{
+    font-size:18px!important;
+    line-height:1!important;
+  }
+  .tab-btn.active{
+    box-shadow:inset 0 -3px 0 #ff7043!important;
+    background:#fff2ed!important;
+  }
+  .menu-toggle,.menu-backdrop{display:none!important;}
+
+  /* Two-column cards become one clean flow */
+  .tab-grid{display:block!important;}
+  .panel + .panel{margin-top:12px!important;}
+  .stats-row{gap:8px!important;}
+  .stat{min-height:68px!important;padding:11px 6px!important;}
+  .stat .num{font-size:20px!important;}
+
+  .task-card{
+    min-height:225px!important;
+    padding:23px 17px!important;
+  }
+  .task-text{font-size:18px!important;}
+  .timer{font-size:38px!important;}
+
+  .video-grid{grid-template-columns:1fr 1fr!important;gap:9px!important;}
+  .video-title{font-size:11px!important;}
+
+  .buddy-onboarding{padding:12px!important;}
+  .buddy-onboarding-card{padding:20px 16px!important;}
+  .buddy-gender-grid{gap:9px!important;}
+  .buddy-gender-btn{min-height:145px!important;}
+}
+
+/* Small phones */
+@media(max-width:390px){
+  .buddy-character-stage{flex-basis:88px!important;width:88px!important;}
+  .buddy-character{width:88px!important;height:108px!important;}
+  .buddy-name{font-size:19px!important;}
+  .buddy-message{font-size:12px!important;}
+  .buddy-action{padding:8px 10px!important;}
+  .tab-btn{flex-basis:70px!important;min-width:70px!important;}
+}
+
+/* Respect accessibility */
+@media(prefers-reduced-motion:reduce){
+  .buddy-character,.buddy-character-stage:before{animation:none!important;}
+}
+</style>
+
+
+<style id="keep-pushing-calm-theme">
+/* =========================================================
+   KEEP PUSHING — CALM EYE-COMFORT THEME
+   Lower saturation, softer contrast, clearer hierarchy.
+   ========================================================= */
+:root{
+  --bg-deep:#f3f5f2;
+  --bg-panel:#fbfcfa;
+  --bg-panel-2:#f0f3ef;
+  --paper:#fffdf8;
+  --paper-line:#e8e5dc;
+  --ink-light:#26332f;
+  --ink-soft:#65736d;
+  --ink-faint:#8b9791;
+  --amber:#8c9f78;
+  --amber-dim:#748965;
+  --teal:#5d8d84;
+  --rust:#b97862;
+  --line:#dfe6e1;
+  --radius:16px;
+  --radius-lg:22px;
+}
+
+/* Stop the page from feeling neon / high-contrast */
+html,body{
+  background:#eef1ee!important;
+  color:#26332f!important;
+}
+.app-shell{
+  background:
+    radial-gradient(700px 320px at 88% -10%,rgba(140,159,120,.10),transparent 68%),
+    radial-gradient(620px 300px at -8% 30%,rgba(93,141,132,.07),transparent 70%),
+    #f3f5f2!important;
+}
+.app-header{
+  background:rgba(251,252,250,.92)!important;
+  border-bottom-color:#e1e6e2!important;
+}
+.app-header .title,.app-header h1{
+  color:#26332f!important;
+}
+.stat,.panel,.task-card,.mood-card,.quote-card,.buddy-card,.sched-block,.note-card{
+  border-color:#e0e6e1!important;
+  box-shadow:0 7px 22px rgba(45,61,54,.045)!important;
+}
+.stat{
+  background:#fbfcfa!important;
+}
+.stat .num{color:#33413b!important;}
+.stat .label{color:#7b8781!important;}
+
+.tab-btn{
+  color:#68756f!important;
+}
+.tab-btn.active{
+  color:#4f766d!important;
+  background:#e9f0ec!important;
+  box-shadow:none!important;
+}
+.tab-btn:hover{background:#f1f4f1!important;}
+
+button{
+  background:#718b78!important;
+  box-shadow:0 4px 11px rgba(73,96,82,.14)!important;
+}
+button:hover:not(:disabled){
+  background:#647e6c!important;
+  filter:none!important;
+}
+.link-btn{
+  color:#5d7f75!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.danger-btn{background:#ad6d61!important;}
+
+.task-card{
+  background:linear-gradient(145deg,#fbfcfa,#f8faf8)!important;
+}
+.task-card-focus{animation:calmFocus 3.8s ease-in-out infinite!important;}
+@keyframes calmFocus{
+  0%,100%{box-shadow:0 7px 22px rgba(45,61,54,.045)}
+  50%{box-shadow:0 10px 28px rgba(93,141,132,.09)}
+}
+.timer{
+  color:#5d7f75!important;
+  text-shadow:none!important;
+}
+
+.quote-card{
+  background:#fafbf8!important;
+  border-left-color:#8c9f78!important;
+  color:#4b5953!important;
+}
+.quote-card:before{color:#718b78!important;}
+
+.mood-card{background:#fbfcfa!important;}
+.mood-btn{
+  background:#f1f4f1!important;
+  border-color:#dfe6e1!important;
+  color:#52605a!important;
+  box-shadow:none!important;
+}
+.mood-btn:hover{
+  background:#e9efeb!important;
+  border-color:#cfdad3!important;
+}
+.sched-toggle-btn{
+  background:#f1f4f1!important;
+  color:#68756f!important;
+  border-color:#dfe6e1!important;
+  box-shadow:none!important;
+}
+.sched-toggle-btn.active{
+  background:#e8efeb!important;
+  color:#4f766d!important;
+  border-color:#cddbd3!important;
+}
+
+.form-row input,.note-input{
+  background:#f7f9f7!important;
+  border-color:#dfe6e1!important;
+  color:#26332f!important;
+}
+.form-row input:focus,.note-input:focus{
+  border-color:#9bb1a5!important;
+  box-shadow:0 0 0 3px rgba(93,141,132,.09)!important;
+}
+
+/* Buddy card: calm, useful, not flashy */
+.buddy-card{
+  background:
+    radial-gradient(circle at 8% 15%,rgba(140,159,120,.11),transparent 30%),
+    linear-gradient(135deg,#fbfcfa,#f7faf7)!important;
+  border-color:#dce5df!important;
+  box-shadow:0 10px 28px rgba(45,61,54,.055)!important;
+}
+.buddy-card::before{
+  background:#8c9f78!important;
+  opacity:.06!important;
+  animation:buddyAuraCalm 7s ease-in-out infinite!important;
+}
+@keyframes buddyAuraCalm{
+  0%,100%{transform:scale(.94);opacity:.05}
+  50%{transform:scale(1.04);opacity:.08}
+}
+.buddy-kicker{color:#77857e!important;}
+.buddy-name{color:#2e3b35!important;}
+.buddy-message{color:#66736d!important;}
+.buddy-mood-chip{
+  background:#eef3ef!important;
+  color:#607069!important;
+  border-color:#dfe6e1!important;
+}
+.buddy-stage-note{color:#8a958f!important;}
+.buddy-action{
+  background:#718b78!important;
+}
+
+/* Make the companion colors gender-distinct but muted */
+.buddy-character{filter:drop-shadow(0 10px 13px rgba(45,61,54,.10))!important;}
+#floatingBuddyCanvas{
+  filter:drop-shadow(0 12px 16px rgba(45,61,54,.10))!important;
+}
+#floatingBuddyBubble{
+  background:rgba(251,252,250,.97)!important;
+  border-color:#dfe6e1!important;
+  color:#3f4d47!important;
+  box-shadow:0 8px 22px rgba(45,61,54,.10)!important;
+}
+
+/* Calm onboarding */
+.buddy-onboarding{
+  background:
+    radial-gradient(circle at 20% 15%,rgba(140,159,120,.12),transparent 30%),
+    linear-gradient(160deg,#eef2ef,#e6eeea)!important;
+  color:#2e3b35!important;
+}
+.buddy-onboarding-card{
+  background:rgba(251,252,250,.94)!important;
+  border-color:#dce5df!important;
+  box-shadow:0 18px 45px rgba(45,61,54,.10)!important;
+}
+.buddy-onboarding p{color:#6a7771!important;}
+.buddy-gender-btn{
+  background:#f1f4f1!important;
+  border-color:#dfe6e1!important;
+  color:#34423c!important;
+}
+.buddy-gender-btn:hover{background:#e9efeb!important;}
+.buddy-gender-btn.active{
+  border-color:#91a99a!important;
+  background:#e8efeb!important;
+  box-shadow:0 0 0 2px rgba(113,139,120,.10)!important;
+}
+.buddy-name-input{
+  background:#f7f9f7!important;
+  border-color:#dfe6e1!important;
+  color:#26332f!important;
+}
+.buddy-name-input::placeholder{color:#9aa49f!important;}
+.buddy-create-btn{
+  background:#718b78!important;
+  color:#fff!important;
+}
+
+/* Floating companion usability: docked, subtle, never in the way */
+#floatingBuddyStage{
+  z-index:900!important;
+}
+#floatingBuddyCanvas{
+  pointer-events:auto!important;
+  cursor:pointer!important;
+}
+#floatingBuddyBubble{
+  pointer-events:none!important;
+}
+
+/* Less visual movement throughout */
+@media (prefers-reduced-motion:reduce){
+  .buddy-card::before,.task-card-focus{animation:none!important;}
+}
+</style>
+
 </head>
 <body>
 <div class="frame-outer"><div class="frame-box">
@@ -3554,60 +4175,92 @@ button:disabled{box-shadow:none!important;}
   init();
 })();
 
-/* ===== Premium animated Daily Companion ===== */
+/* ===== Calm, useful Daily Companion ===== */
 (function(){
   const stage=document.getElementById("floatingBuddyStage");
   const canvas=document.getElementById("floatingBuddyCanvas");
   const bubble=document.getElementById("floatingBuddyBubble");
   if(!stage||!canvas||!bubble) return;
-  const ctx=canvas.getContext("2d");
-  const S={x:0,y:0,tx:0,ty:0,vx:0,vy:0,last:0,nextMove:0,nextBlink:0,blink:0,gesture:"idle",gestureT:0,bubbleT:0};
 
-  function hasBuddy(){const b=window.KPGetBuddy&&window.KPGetBuddy();return !!(b&&b.name)}
-  function gender(){const b=window.KPGetBuddy&&window.KPGetBuddy();return b&&b.gender==="boy"?"boy":"girl"}
-  function name(){const b=window.KPGetBuddy&&window.KPGetBuddy();return b&&b.name?b.name:"Buddy"}
+  const ctx=canvas.getContext("2d");
+  const S={
+    x:0,y:0,tx:0,ty:0,last:0,
+    nextBlink:0,blink:0,
+    gesture:"idle",gestureT:0,bubbleT:0,
+    visible:false
+  };
+
+  function buddy(){
+    return window.KPGetBuddy&&window.KPGetBuddy();
+  }
+  function hasBuddy(){const b=buddy();return !!(b&&b.name)}
+  function gender(){const b=buddy();return b&&b.gender==="girl"?"girl":"boy"}
+  function name(){const b=buddy();return b&&b.name?b.name:"Buddy"}
   function mood(){try{return window.KPGetMood?window.KPGetMood():"okay"}catch(e){return"okay"}}
-  function streakStage(){try{const s=window.KPGetStreak?window.KPGetStreak():0;return s>=30?4:s>=14?3:s>=7?2:s>=3?1:0}catch(e){return 0}}
+  function streakStage(){
+    try{
+      const s=window.KPGetStreak?window.KPGetStreak():0;
+      return s>=30?4:s>=14?3:s>=7?2:s>=3?1:0;
+    }catch(e){return 0}
+  }
 
   function resize(){
-    const d=Math.min(devicePixelRatio||1,2),w=150,h=185;
+    const d=Math.min(devicePixelRatio||1,2);
+    const w=150,h=185;
     canvas.style.width=w+"px";canvas.style.height=h+"px";
-    canvas.width=w*d;canvas.height=h*d;ctx.setTransform(d,0,0,d,0,0);
+    canvas.width=w*d;canvas.height=h*d;
+    ctx.setTransform(d,0,0,d,0,0);
+    dock();
   }
-  function target(){
-    const w=innerWidth,h=innerHeight,cw=w<700?115:150,ch=w<700?142:185;
-    const lanes=[
-      [12,Math.max(72,h-ch-20)],
-      [Math.max(12,w-cw-18),Math.max(72,h-ch-20)],
-      [Math.max(12,w-cw-22),86],[18,86]
-    ];
-    const q=lanes[Math.floor(Math.random()*lanes.length)];
-    S.tx=Math.max(8,Math.min(w-cw-8,q[0]+Math.random()*32-16));
-    S.ty=Math.max(68,Math.min(h-ch-12,q[1]+Math.random()*38-19));
-    S.nextMove=performance.now()+6200+Math.random()*4800;
+
+  /* One predictable home position. The buddy only moves when reacting. */
+  function dock(){
+    const cw=innerWidth<700?115:150;
+    const ch=innerWidth<700?142:185;
+    S.tx=Math.max(10,innerWidth-cw-18);
+    S.ty=Math.max(74,innerHeight-ch-24);
   }
-  function say(text,ms=3300){
+
+  function moveToReaction(){
+    /* Small, deliberate movement — never across the whole screen. */
+    const cw=innerWidth<700?115:150;
+    const ch=innerWidth<700?142:185;
+    const baseX=Math.max(10,innerWidth-cw-18);
+    const baseY=Math.max(74,innerHeight-ch-24);
+    S.tx=baseX-10;
+    S.ty=baseY-8;
+  }
+
+  function say(text,ms=3600){
     if(!hasBuddy())return;
-    bubble.textContent=text;bubble.classList.add("show");
-    clearTimeout(S.bubbleT);S.bubbleT=setTimeout(()=>bubble.classList.remove("show"),ms);
+    bubble.textContent=text;
+    bubble.classList.add("show");
+    clearTimeout(S.bubbleT);
+    S.bubbleT=setTimeout(()=>bubble.classList.remove("show"),ms);
   }
+
   function event(kind){
     if(!hasBuddy())return;
     const n=name();
     const messages={
-      welcome:`Hi! I'm ${n}. Ready to make today count?`,
-      task:`Nice work! One step done. ✨`,
-      rough:`It's okay. Let's take one tiny step together.`,
-      many:`We've got this. Just one task at a time.`,
-      all:`You did it! Today is complete! 🎉`,
-      good:`You're doing great. Keep going!`,
-      idle:`I'm right here with you. 💛`
+      welcome:`Hi ${n}. I'm here when you need a little push.`,
+      task:`Nice work, ${n}. One step is done.`,
+      rough:`No rush, ${n}. Let's make the next step small.`,
+      many:`One task at a time, ${n}. You don't need to do everything now.`,
+      all:`You finished today's plan, ${n}. Take the win.`,
+      good:`You're doing well, ${n}. Keep the steady pace.`,
+      idle:`I'm here, ${n}. Tap me whenever you want a quick check-in.`
     };
-    S.gesture=kind==="all"?"celebrate":kind==="task"?"happy":kind==="welcome"?"wave":kind==="rough"?"comfort":"idle";
-    S.gestureT=kind==="all"?2600:1800;
-    say(messages[kind]||messages.idle,kind==="all"?4200:3200);
-    target();
+    S.gesture=
+      kind==="all"?"celebrate":
+      kind==="task"?"happy":
+      kind==="welcome"?"wave":
+      kind==="rough"?"comfort":"idle";
+    S.gestureT=kind==="all"?2200:1500;
+    say(messages[kind]||messages.idle,kind==="all"?4000:3300);
+    moveToReaction();
   }
+
   window.KPCompanion={
     celebrate(kind="task"){event(kind)},
     welcome(){event("welcome")},
@@ -3615,6 +4268,15 @@ button:disabled{box-shadow:none!important;}
     many(){event("many")},
     idle(){event("idle")}
   };
+
+  /* Tapping the companion gives a useful, context-aware check-in. */
+  canvas.addEventListener("click",function(){
+    if(!hasBuddy()) return;
+    const m=mood();
+    if(m==="rough") event("rough");
+    else if(m==="good") event("good");
+    else event("idle");
+  });
 
   function ellipse(x,y,rx,ry,fill,rot=0){
     ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.fillStyle=fill;
@@ -3630,137 +4292,154 @@ button:disabled{box-shadow:none!important;}
     ctx.clearRect(0,0,150,185);
     ctx.save();ctx.translate(75,102);
 
-    const warm = g !== "girl";
-    const outer = warm ? "#FF8A3D" : "#5FB8D9";
-    const mid = warm ? "#FFB25E" : "#8FD4E8";
-    const inner = warm ? "#FFE7BE" : "#DFF5F7";
-    const ember = warm ? "#E8613A" : "#3B7FA0";
-    const ink = "#3A2A1E";
+    const girl=g==="girl";
+    const outer=girl?"#7d9fb0":"#879a72";
+    const mid=girl?"#a9c2cc":"#aebd98";
+    const inner=girl?"#e3edf0":"#edf1df";
+    const ember=girl?"#648a99":"#72855e";
+    const ink="#34413b";
 
     const gesture=S.gesture,active=S.gestureT>0;
-    const stageScale = 1 + streakStage() * 0.06;
-    const bob = Math.sin(now*.0018)*3 + (active && gesture==="celebrate" ? Math.sin(now*.012)*5 : 0);
-    const sway = Math.sin(now*.0013)*2.4;
-    const scale = (active && gesture==="celebrate" ? 1.1 : active && gesture==="comfort" ? 0.92 : 1) * stageScale;
+    const stageScale=1+streakStage()*0.045;
 
-    // ground shadow
-    ellipse(0,46,26,5,"rgba(0,0,0,.14)");
+    /* Slow breathing, no jitter. */
+    const bob=Math.sin(now*.00115)*1.7;
+    const sway=Math.sin(now*.00075)*.8;
+    const scale=(active&&gesture==="celebrate"?1.06:active&&gesture==="comfort"?.96:1)*stageScale;
+
+    ellipse(0,46,25,5,"rgba(45,61,54,.10)");
 
     ctx.save();
-    ctx.translate(sway, bob);
-    ctx.scale(scale, scale);
+    ctx.translate(sway,bob);
+    ctx.scale(scale,scale);
 
-    // soft glow aura
-    const grad = ctx.createRadialGradient(0,-4,3,0,-4,48);
-    grad.addColorStop(0, outer + "66");
-    grad.addColorStop(1, outer + "00");
-    ctx.fillStyle = grad;
-    ctx.beginPath(); ctx.arc(0,-4,48,0,Math.PI*2); ctx.fill();
+    const grad=ctx.createRadialGradient(0,-4,3,0,-4,48);
+    grad.addColorStop(0,outer+"42");
+    grad.addColorStop(1,outer+"00");
+    ctx.fillStyle=grad;
+    ctx.beginPath();ctx.arc(0,-4,48,0,Math.PI*2);ctx.fill();
 
-    // ember base
-    ellipse(0,36,13,7,ember+"8C");
+    ellipse(0,36,13,7,ember+"72");
 
-    // little flame-tip "ears" for a cuter chibi silhouette
-    const tipGrad = ctx.createLinearGradient(0,-28,0,2);
-    tipGrad.addColorStop(0, mid); tipGrad.addColorStop(1, outer);
-    ctx.fillStyle = tipGrad;
+    const tipGrad=ctx.createLinearGradient(0,-28,0,2);
+    tipGrad.addColorStop(0,mid);tipGrad.addColorStop(1,outer);
+    ctx.fillStyle=tipGrad;
     ctx.beginPath();
-    ctx.moveTo(-7,-2); ctx.bezierCurveTo(-9,-12,-7,-19,-3,-24); ctx.bezierCurveTo(-4,-15,-3,-9,0,-2); ctx.closePath(); ctx.fill();
+    ctx.moveTo(-7,-2);ctx.bezierCurveTo(-9,-12,-7,-19,-3,-24);
+    ctx.bezierCurveTo(-4,-15,-3,-9,0,-2);ctx.closePath();ctx.fill();
     ctx.beginPath();
-    ctx.moveTo(7,-2); ctx.bezierCurveTo(9,-12,7,-19,3,-24); ctx.bezierCurveTo(4,-15,3,-9,0,-2); ctx.closePath(); ctx.fill();
+    ctx.moveTo(7,-2);ctx.bezierCurveTo(9,-12,7,-19,3,-24);
+    ctx.bezierCurveTo(4,-15,3,-9,0,-2);ctx.closePath();ctx.fill();
 
-    // round chibi body (gradient)
-    const bodyGrad = ctx.createLinearGradient(0,-8,0,42);
-    bodyGrad.addColorStop(0, inner);
-    bodyGrad.addColorStop(0.55, mid);
-    bodyGrad.addColorStop(1, outer);
-    ctx.fillStyle = bodyGrad;
+    const bodyGrad=ctx.createLinearGradient(0,-8,0,42);
+    bodyGrad.addColorStop(0,inner);bodyGrad.addColorStop(.55,mid);bodyGrad.addColorStop(1,outer);
+    ctx.fillStyle=bodyGrad;
     ctx.beginPath();
-    ctx.moveTo(0,-8);
-    ctx.bezierCurveTo(-15,-6,-22,8,-20,22);
+    ctx.moveTo(0,-8);ctx.bezierCurveTo(-15,-6,-22,8,-20,22);
     ctx.bezierCurveTo(-19,34,-11,42,0,42);
     ctx.bezierCurveTo(11,42,19,34,20,22);
-    ctx.bezierCurveTo(22,8,15,-6,0,-8);
-    ctx.closePath();
-    ctx.fill();
+    ctx.bezierCurveTo(22,8,15,-6,0,-8);ctx.closePath();ctx.fill();
 
-    // inner highlight
-    ctx.fillStyle = inner;
-    ctx.globalAlpha = .5;
+    ctx.fillStyle=inner;ctx.globalAlpha=.48;
     ctx.beginPath();
-    ctx.moveTo(0,2);
-    ctx.bezierCurveTo(-8,4,-11,12,-10,20);
+    ctx.moveTo(0,2);ctx.bezierCurveTo(-8,4,-11,12,-10,20);
     ctx.bezierCurveTo(-9,28,-5,32,0,32);
     ctx.bezierCurveTo(5,32,9,28,10,20);
-    ctx.bezierCurveTo(11,12,8,4,0,2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.globalAlpha = 1;
+    ctx.bezierCurveTo(11,12,8,4,0,2);ctx.closePath();ctx.fill();
+    ctx.globalAlpha=1;
 
-    // always a little blush — cuter
-    ellipse(-13,20,3.6,2.2,"#FF6A4D42"); ellipse(13,20,3.6,2.2,"#FF6A4D42");
+    ellipse(-13,20,3.5,2.1,"#b9786240");
+    ellipse(13,20,3.5,2.1,"#b9786240");
 
-    // face
-    if (m === "rough") {
-      ctx.strokeStyle = ink; ctx.lineWidth = 2.2; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-9,10); ctx.quadraticCurveTo(-6,7,-3,10); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(3,10); ctx.quadraticCurveTo(6,7,9,10); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(-6,24); ctx.quadraticCurveTo(0,22,6,24); ctx.stroke();
-    } else if (m === "good") {
-      ellipse(-6,11,3.8,3.8,ink); ellipse(6,11,3.8,3.8,ink);
-      ellipse(-4.9,9.3,1.2,1.2,"#fff"); ellipse(7.1,9.3,1.2,1.2,"#fff");
-      ctx.strokeStyle = ink; ctx.lineWidth = 2.2; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-6,21); ctx.quadraticCurveTo(0,29,6,21); ctx.stroke();
-    } else {
-      ellipse(-6,11,3.3,3.9,ink); ellipse(6,11,3.3,3.9,ink);
-      ellipse(-5,9.5,1,1,"#fff"); ellipse(7,9.5,1,1,"#fff");
-      ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-4,22); ctx.quadraticCurveTo(0,26,4,22); ctx.stroke();
+    /* Expression follows mood without frantic animation. */
+    if(m==="rough"){
+      ctx.strokeStyle=ink;ctx.lineWidth=2.2;ctx.lineCap="round";
+      ctx.beginPath();ctx.moveTo(-9,10);ctx.quadraticCurveTo(-6,7,-3,10);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(3,10);ctx.quadraticCurveTo(6,7,9,10);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-6,24);ctx.quadraticCurveTo(0,22,6,24);ctx.stroke();
+    }else if(m==="good"){
+      ellipse(-6,11,3.6,3.6,ink);ellipse(6,11,3.6,3.6,ink);
+      ellipse(-4.9,9.3,1.1,1.1,"#fff");ellipse(7.1,9.3,1.1,1.1,"#fff");
+      ctx.strokeStyle=ink;ctx.lineWidth=2.1;ctx.lineCap="round";
+      ctx.beginPath();ctx.moveTo(-6,21);ctx.quadraticCurveTo(0,28,6,21);ctx.stroke();
+    }else{
+      ellipse(-6,11,3.2,3.8,ink);ellipse(6,11,3.2,3.8,ink);
+      ellipse(-5,9.5,1,1,"#fff");ellipse(7,9.5,1,1,"#fff");
+      ctx.strokeStyle=ink;ctx.lineWidth=2;ctx.lineCap="round";
+      ctx.beginPath();ctx.moveTo(-4,22);ctx.quadraticCurveTo(0,26,4,22);ctx.stroke();
     }
+
+    /* Wave/happy gesture only when an event happens. */
+    if(active && (gesture==="wave"||gesture==="happy")){
+      ctx.strokeStyle=outer;ctx.lineWidth=3;ctx.lineCap="round";
+      const lift=Math.sin(now*.007)*2;
+      line(19,15,30,6+lift,outer,3);
+      line(30,6+lift,35,11+lift,outer,3);
+    }
+
     ctx.restore();
 
-    if (m === "good" || (gesture === "celebrate" && active)) {
-      const p = (Math.sin(now*.004)+1)/2;
-      ctx.globalAlpha = .35 + .35*p; ctx.fillStyle = "#FFD05B";
-      for (let i=0;i<5;i++){ const a=now*.0005+i*1.25, r=42+(i%2)*6;
-        ctx.beginPath(); ctx.arc(Math.cos(a)*r, Math.sin(a)*r-14, 1.8+(i%2), 0, Math.PI*2); ctx.fill(); }
-      ctx.globalAlpha = 1;
-    }
-    if (gesture === "celebrate" && active) {
-      for (let i=0;i<4;i++){ const a=now*.001+i*Math.PI/2;
-        line(Math.cos(a)*30, Math.sin(a)*30-16, Math.cos(a)*39, Math.sin(a)*39-16, "#FFD05B", 2); }
+    /* Gentle celebration dots — no flashing. */
+    if((m==="good"||gesture==="celebrate") && active){
+      ctx.globalAlpha=.38;ctx.fillStyle=outer;
+      for(let i=0;i<4;i++){
+        const a=i*1.57;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a)*39,Math.sin(a)*32-14,1.5,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.globalAlpha=1;
     }
     ctx.restore();
   }
 
   function place(){
+    const bw=150;
+    const left=Math.max(8,Math.min(innerWidth-bw-8,S.x-10));
+    const top=Math.max(64,S.y-8);
+    bubble.style.transform=`translate3d(${left}px,${top}px,0)`;
     canvas.style.transform=`translate3d(${S.x}px,${S.y}px,0)`;
-    const bw=150,right=S.x>innerWidth/2;
-    const left=right?S.x-bw+40:S.x+105,top=Math.max(68,S.y+28);
-    bubble.style.transform=`translate3d(${Math.max(8,Math.min(innerWidth-bw-8,left))}px,${top}px,0)`;
   }
 
   function frame(now){
     const dt=Math.min(32,now-(S.last||now));S.last=now;
-    if(!hasBuddy()){stage.style.display="none";requestAnimationFrame(frame);return}
+    if(!hasBuddy()){
+      stage.style.display="none";
+      requestAnimationFrame(frame);return;
+    }
     stage.style.display="block";
-    if(now>S.nextMove)target();
-    const ax=(S.tx-S.x)*.00065*dt,ay=(S.ty-S.y)*.00065*dt;
-    S.vx=(S.vx+ax)*.955;S.vy=(S.vy+ay)*.955;S.x+=S.vx*dt;S.y+=S.vy*dt;
-    const cw=innerWidth<700?115:150,ch=innerWidth<700?142:185;
-    S.x=Math.max(6,Math.min(innerWidth-cw-6,S.x));S.y=Math.max(68,Math.min(innerHeight-ch-12,S.y));
-    if(now>S.nextBlink){S.blink=1;S.nextBlink=now+2300+Math.random()*3600}
+
+    /* Spring to a stable dock. No random target changes. */
+    const ax=(S.tx-S.x)*.0009*dt;
+    const ay=(S.ty-S.y)*.0009*dt;
+    S.vx=(S.vx+ax)*.90;
+    S.vy=(S.vy+ay)*.90;
+    S.x+=S.vx*dt;S.y+=S.vy*dt;
+
+    const cw=innerWidth<700?115:150;
+    const ch=innerWidth<700?142:185;
+    S.x=Math.max(6,Math.min(innerWidth-cw-6,S.x));
+    S.y=Math.max(68,Math.min(innerHeight-ch-12,S.y));
+
+    if(now>S.nextBlink){
+      S.blink=1;
+      S.nextBlink=now+3200+Math.random()*2600;
+    }
     if(S.blink>0)S.blink-=dt/120;
     if(S.gestureT>0)S.gestureT-=dt;else S.gesture="idle";
+
     draw(now);place();requestAnimationFrame(frame);
   }
 
   function start(){
-    resize();S.x=innerWidth<700?innerWidth-130:innerWidth-170;S.y=Math.max(80,innerHeight*.45);
-    S.tx=S.x;S.ty=S.y;S.nextMove=performance.now()+1800;S.nextBlink=performance.now()+2400;
+    resize();
+    dock();
+    S.x=S.tx;S.y=S.ty;
+    S.nextBlink=performance.now()+2500;
     requestAnimationFrame(frame);
-    setTimeout(()=>{if(hasBuddy())window.KPCompanion.welcome()},1200);
+    setTimeout(()=>{if(hasBuddy())window.KPCompanion.welcome()},1400);
   }
+
   window.addEventListener("resize",resize,{passive:true});
   setTimeout(start,700);
 })();
@@ -3776,6 +4455,48 @@ button:disabled{box-shadow:none!important;}
   });
   const app = document.getElementById('app');
   if(app) observer.observe(app,{childList:true,subtree:true});
+})();
+</script>
+
+
+<script id="premium-redesign-v2-runtime">
+(function(){
+  const root=document.getElementById("app");
+  if(!root) return;
+
+  function polish(){
+    const nav=document.querySelector(".app-tabbar");
+    if(nav && window.innerWidth<720){
+      const active=nav.querySelector(".tab-btn.active");
+      if(active && !nav.dataset.kpCentered){
+        requestAnimationFrame(()=>active.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}));
+        nav.dataset.kpCentered="1";
+      }
+    }
+  }
+  const observer=new MutationObserver(function(){
+    const nav=document.querySelector(".app-tabbar");
+    if(nav) nav.removeAttribute("data-kp-centered");
+    polish();
+  });
+  observer.observe(root,{childList:true,subtree:true});
+  window.addEventListener("resize",polish,{passive:true});
+  polish();
+})();
+</script>
+
+
+<script id="calm-companion-runtime">
+(function(){
+  const canvas=document.getElementById("floatingBuddyCanvas");
+  if(!canvas) return;
+  let lastTap=0;
+  canvas.addEventListener("pointerdown",function(){
+    const now=Date.now();
+    if(now-lastTap<500) return;
+    lastTap=now;
+    canvas.style.transformOrigin="50% 80%";
+  },{passive:true});
 })();
 </script>
 
