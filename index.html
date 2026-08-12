@@ -1272,6 +1272,838 @@ button:hover:not(:disabled){
 }
 </style>
 
+
+<style id="keep-pushing-fresh-premium-v4">
+/* =========================================================
+   KEEP PUSHING — VERSION 4: FRESH PREMIUM
+   Bright, friendly, eye-comfortable color system.
+   ========================================================= */
+:root{
+  --kp-bg:#f6f7fb;
+  --kp-bg2:#fbfbfd;
+  --kp-card:#ffffff;
+  --kp-card-soft:#f8f9fc;
+  --kp-text:#202638;
+  --kp-muted:#667085;
+  --kp-subtle:#98a2b3;
+  --kp-border:#e7e9f0;
+
+  --kp-coral:#f4775b;
+  --kp-coral-soft:#fff0eb;
+  --kp-violet:#7567d9;
+  --kp-violet-soft:#f0edff;
+  --kp-blue:#5796c7;
+  --kp-blue-soft:#edf6fc;
+  --kp-mint:#55a58f;
+  --kp-mint-soft:#eaf7f2;
+  --kp-gold:#d7a64b;
+  --kp-gold-soft:#fff7e6;
+
+  --kp-shadow:0 10px 28px rgba(31,38,56,.055);
+  --kp-shadow-hover:0 15px 34px rgba(31,38,56,.085);
+}
+
+/* Base */
+html,body{
+  background:var(--kp-bg)!important;
+  color:var(--kp-text)!important;
+}
+.app-shell{
+  background:
+    radial-gradient(700px 340px at 90% -8%,rgba(117,103,217,.075),transparent 68%),
+    radial-gradient(650px 330px at -8% 25%,rgba(244,119,91,.07),transparent 68%),
+    linear-gradient(180deg,#f9fafc 0%,#f3f5f9 100%)!important;
+}
+
+/* Header */
+.app-header{
+  background:rgba(255,255,255,.90)!important;
+  border-bottom-color:#e8eaf0!important;
+  backdrop-filter:blur(18px)!important;
+}
+.app-header .title,.app-header h1{color:var(--kp-text)!important;}
+.app-header .eyebrow{color:#8b92a2!important;}
+
+/* KPI cards */
+.stat{
+  background:rgba(255,255,255,.94)!important;
+  border-color:var(--kp-border)!important;
+  box-shadow:var(--kp-shadow)!important;
+}
+.stat:nth-child(1):after{background:rgba(244,119,91,.10)!important;}
+.stat:nth-child(2):after{background:rgba(117,103,217,.10)!important;}
+.stat:nth-child(3):after{background:rgba(85,165,143,.10)!important;}
+.stat .num{color:var(--kp-text)!important;}
+
+/* Navigation */
+.app-tabbar{
+  background:rgba(255,255,255,.90)!important;
+  border-color:#e5e8ef!important;
+  backdrop-filter:blur(18px)!important;
+}
+.tab-btn{color:#697184!important;}
+.tab-btn:hover{background:#f6f7fa!important;}
+.tab-btn.active{
+  color:#6358bd!important;
+  background:var(--kp-violet-soft)!important;
+  box-shadow:none!important;
+}
+
+/* Primary controls */
+button{
+  background:linear-gradient(135deg,#f58267,#ed6c50)!important;
+  color:#fff!important;
+  border:0!important;
+  box-shadow:0 5px 13px rgba(244,119,91,.18)!important;
+}
+button:hover:not(:disabled){
+  filter:brightness(1.02)!important;
+  transform:translateY(-1px)!important;
+}
+.link-btn{
+  background:transparent!important;
+  color:#6259ba!important;
+  box-shadow:none!important;
+}
+.danger-btn{background:#b96e68!important;}
+
+/* Generic cards */
+.panel,.task-card,.mood-card,.quote-card,.buddy-card,.sched-block,.note-card{
+  border-color:var(--kp-border)!important;
+  box-shadow:var(--kp-shadow)!important;
+}
+.panel,.mood-card{background:var(--kp-card)!important;}
+.panel-title{color:#384054!important;}
+
+/* Main task */
+.task-card{
+  background:
+    radial-gradient(circle at 90% 10%,rgba(117,103,217,.06),transparent 30%),
+    linear-gradient(145deg,#fff,#fffaf8)!important;
+}
+.task-card-focus{animation:freshFocus 3.5s ease-in-out infinite!important;}
+@keyframes freshFocus{
+  0%,100%{box-shadow:var(--kp-shadow)}
+  50%{box-shadow:0 13px 31px rgba(244,119,91,.11)}
+}
+.task-text{color:#202638!important;}
+.timer{
+  color:#e96f54!important;
+  text-shadow:none!important;
+}
+
+/* Mood */
+.mood-card{
+  background:linear-gradient(145deg,#fff,#fbfcff)!important;
+}
+.mood-btn{
+  background:#f7f8fb!important;
+  color:#4e576b!important;
+  border-color:#e6e8ef!important;
+  box-shadow:none!important;
+}
+.mood-btn:hover{
+  background:var(--kp-coral-soft)!important;
+  border-color:#f5c9bc!important;
+}
+.mood-btn.selected{
+  background:var(--kp-mint-soft)!important;
+  border-color:#b9ded2!important;
+  color:#477e6e!important;
+}
+
+/* Quote */
+.quote-card{
+  background:linear-gradient(135deg,#fffaf7,#fff)!important;
+  border-left:4px solid var(--kp-coral)!important;
+  color:#4d5668!important;
+}
+.quote-card:before{color:var(--kp-coral)!important;}
+
+/* Schedule / calendar */
+.sched-block{
+  background:#fff!important;
+  border-left-color:var(--kp-blue)!important;
+}
+.sched-block.sched-done{border-left-color:var(--kp-mint)!important;}
+.sched-toggle-btn{
+  background:#f7f8fb!important;
+  color:#667085!important;
+  border-color:#e6e8ef!important;
+  box-shadow:none!important;
+}
+.sched-toggle-btn.active{
+  background:var(--kp-blue-soft)!important;
+  color:#477fa8!important;
+  border-color:#c9e1f0!important;
+}
+.cal-today{outline:2px solid var(--kp-coral)!important;}
+.cal-done{background:var(--kp-mint)!important;}
+
+/* Inputs */
+.form-row input,.note-input{
+  background:#fafbfc!important;
+  border-color:#e2e5ec!important;
+  color:var(--kp-text)!important;
+}
+.form-row input:focus,.note-input:focus{
+  border-color:#b8afe9!important;
+  box-shadow:0 0 0 3px rgba(117,103,217,.09)!important;
+}
+
+/* Buddy card */
+.buddy-card{
+  background:
+    radial-gradient(circle at 6% 15%,rgba(244,119,91,.10),transparent 30%),
+    radial-gradient(circle at 92% 85%,rgba(117,103,217,.08),transparent 32%),
+    linear-gradient(135deg,#fff,#fbfaff)!important;
+  border-color:#e4e2f0!important;
+  box-shadow:0 13px 34px rgba(117,103,217,.065)!important;
+}
+.buddy-card::before{
+  background:var(--kp-coral)!important;
+  opacity:.05!important;
+}
+.buddy-kicker{
+  background:var(--kp-coral-soft)!important;
+  color:#c65f49!important;
+}
+.buddy-name{color:#252b3b!important;}
+.buddy-message{color:#667085!important;}
+.buddy-mood-chip{
+  background:var(--kp-violet-soft)!important;
+  color:#655bb7!important;
+  border-color:#ded9f8!important;
+}
+.buddy-action{
+  background:linear-gradient(135deg,#7567d9,#685bc9)!important;
+  box-shadow:0 5px 13px rgba(117,103,217,.18)!important;
+}
+
+/* Floating buddy */
+#floatingBuddyBubble{
+  background:rgba(255,255,255,.97)!important;
+  border-color:#e4e6ed!important;
+  color:#3d4659!important;
+  box-shadow:0 10px 24px rgba(31,38,56,.10)!important;
+}
+#floatingBuddyCanvas{
+  filter:drop-shadow(0 11px 16px rgba(31,38,56,.10))!important;
+}
+
+/* Onboarding */
+.buddy-onboarding{
+  background:
+    radial-gradient(circle at 15% 15%,rgba(244,119,91,.13),transparent 28%),
+    radial-gradient(circle at 85% 82%,rgba(117,103,217,.12),transparent 30%),
+    linear-gradient(160deg,#f8f8fc,#eef2fa)!important;
+  color:var(--kp-text)!important;
+}
+.buddy-onboarding-card{
+  background:rgba(255,255,255,.96)!important;
+  border-color:#e3e5ee!important;
+  box-shadow:0 20px 50px rgba(31,38,56,.11)!important;
+}
+.buddy-onboarding p{color:#687184!important;}
+.buddy-gender-btn{
+  background:#f7f8fb!important;
+  border-color:#e2e5ed!important;
+  color:#30384a!important;
+}
+.buddy-gender-btn:hover{background:#f2f0ff!important;}
+.buddy-gender-btn.active{
+  background:var(--kp-violet-soft)!important;
+  border-color:#c9c1f0!important;
+  box-shadow:0 0 0 2px rgba(117,103,217,.08)!important;
+}
+.buddy-name-input{
+  background:#fafbfc!important;
+  border-color:#e2e5ed!important;
+  color:#202638!important;
+}
+.buddy-create-btn{
+  background:linear-gradient(135deg,#7567d9,#6659c8)!important;
+}
+
+/* Video cards */
+.video-card{
+  border-color:#e5e7ee!important;
+  box-shadow:0 6px 18px rgba(31,38,56,.045)!important;
+}
+.video-card:hover{box-shadow:var(--kp-shadow-hover)!important;}
+
+/* Light streak / rewards accents if present */
+.streak,.reward,.achievement,.success,.completed{
+  --accent:var(--kp-gold);
+}
+
+/* Mobile */
+@media(max-width:719px){
+  .app-header{background:rgba(255,255,255,.95)!important;}
+  .app-main{background:transparent!important;}
+  .app-tabbar{
+    background:rgba(255,255,255,.96)!important;
+    border-top-color:#e5e7ee!important;
+    box-shadow:0 -10px 30px rgba(31,38,56,.09)!important;
+  }
+  .tab-btn.active{
+    background:var(--kp-violet-soft)!important;
+    color:#6259ba!important;
+    box-shadow:inset 0 -3px 0 #7567d9!important;
+  }
+  .buddy-card{
+    background:
+      radial-gradient(circle at 8% 12%,rgba(244,119,91,.09),transparent 30%),
+      linear-gradient(135deg,#fff,#fbfaff)!important;
+  }
+}
+
+/* Accessibility: preserve readable contrast without harsh black */
+@media(prefers-contrast:more){
+  .buddy-message,.stat .label,.quote-card{color:#4b5565!important;}
+}
+</style>
+
+
+<style id="kp-v5-real-theme">
+/* ========================= KEEP PUSHING V5 =========================
+   VISUAL RESET + FRESH PREMIUM
+   This layer intentionally overrides the previous redesign layers.
+   ================================================================== */
+:root{
+  --v5-bg:#f7f8fc!important;
+  --v5-white:#ffffff!important;
+  --v5-ink:#202536!important;
+  --v5-muted:#687084!important;
+  --v5-line:#e5e8f0!important;
+  --v5-coral:#ff6f61!important;
+  --v5-coral2:#ff9275!important;
+  --v5-purple:#7b6ee6!important;
+  --v5-purple2:#9a8ff0!important;
+  --v5-blue:#5ca9d6!important;
+  --v5-mint:#59b39b!important;
+  --v5-yellow:#f2bd58!important;
+}
+
+/* PAGE */
+html,body{
+  background:#edf0f5!important;
+  color:var(--v5-ink)!important;
+}
+#app{
+  background:#f7f8fc!important;
+  color:var(--v5-ink)!important;
+}
+.app-shell{
+  background:
+    radial-gradient(650px 350px at 100% 0%,rgba(123,110,230,.14),transparent 65%),
+    radial-gradient(600px 320px at 0% 15%,rgba(255,111,97,.10),transparent 62%),
+    #f7f8fc!important;
+}
+
+/* HEADER */
+#app .app-header{
+  background:rgba(255,255,255,.96)!important;
+  border-bottom:1px solid #e5e8f0!important;
+  box-shadow:0 3px 18px rgba(32,37,54,.04)!important;
+}
+#app .app-header .title,
+#app .app-header h1{
+  color:#202536!important;
+  font-weight:850!important;
+}
+#app .app-header .eyebrow{
+  color:#8b91a1!important;
+}
+
+/* KPI */
+#app .stat{
+  background:#fff!important;
+  border:1px solid #e4e7ef!important;
+  box-shadow:0 7px 22px rgba(32,37,54,.055)!important;
+}
+#app .stat .num{color:#202536!important;}
+#app .stat .label{color:#7a8293!important;}
+#app .stat:nth-child(1){border-top:3px solid #ff6f61!important;}
+#app .stat:nth-child(2){border-top:3px solid #7b6ee6!important;}
+#app .stat:nth-child(3){border-top:3px solid #59b39b!important;}
+#app .stat:nth-child(4){border-top:3px solid #f2bd58!important;}
+
+/* DESKTOP NAV */
+#app .app-tabbar{
+  background:#fff!important;
+  border-right:1px solid #e5e8f0!important;
+  border-color:#e5e8f0!important;
+  box-shadow:3px 0 20px rgba(32,37,54,.035)!important;
+}
+#app .tab-btn{
+  color:#697185!important;
+  background:transparent!important;
+  border:0!important;
+}
+#app .tab-btn:hover{
+  background:#f7f5ff!important;
+  color:#665bd0!important;
+}
+#app .tab-btn.active{
+  color:#655bd0!important;
+  background:#efedff!important;
+  box-shadow:inset 4px 0 0 #7b6ee6!important;
+}
+
+/* CONTENT */
+#app .app-main{
+  background:transparent!important;
+}
+#app .content{
+  color:#202536!important;
+}
+#app .section-label{
+  color:#7b8394!important;
+  font-weight:850!important;
+}
+
+/* ALL MAIN CARDS */
+#app .panel,
+#app .task-card,
+#app .mood-card,
+#app .quote-card,
+#app .buddy-card,
+#app .sched-block,
+#app .note-card{
+  background:#fff!important;
+  border:1px solid #e4e7ef!important;
+  box-shadow:0 9px 28px rgba(32,37,54,.055)!important;
+}
+
+/* TASK HERO */
+#app .task-card{
+  background:
+    radial-gradient(circle at 96% 5%,rgba(123,110,230,.10),transparent 30%),
+    radial-gradient(circle at 4% 90%,rgba(255,111,97,.09),transparent 28%),
+    #fff!important;
+}
+#app .task-label{color:#8a91a1!important;}
+#app .task-text{color:#202536!important;}
+#app .timer{color:#ef6957!important;font-weight:900!important;}
+#app .task-card-focus{
+  animation:v5TaskPulse 4s ease-in-out infinite!important;
+}
+@keyframes v5TaskPulse{
+  0%,100%{box-shadow:0 9px 28px rgba(32,37,54,.055)}
+  50%{box-shadow:0 13px 34px rgba(255,111,97,.12)}
+}
+
+/* BUTTONS */
+#app button{
+  background:linear-gradient(135deg,#ff7865,#f35f55)!important;
+  color:#fff!important;
+  border:0!important;
+  box-shadow:0 6px 15px rgba(243,95,85,.20)!important;
+}
+#app button:hover:not(:disabled){
+  background:linear-gradient(135deg,#ff806e,#ef5b51)!important;
+}
+#app .link-btn{
+  background:transparent!important;
+  color:#665bd0!important;
+  box-shadow:none!important;
+}
+#app .danger-btn{background:#b96868!important;}
+
+/* MOOD */
+#app .mood-card{
+  background:linear-gradient(135deg,#fff,#fbfaff)!important;
+}
+#app .mood-btn{
+  background:#f7f8fb!important;
+  color:#4d5669!important;
+  border:1px solid #e3e6ee!important;
+  box-shadow:none!important;
+}
+#app .mood-btn:hover{
+  background:#fff0ec!important;
+  border-color:#ffc9bd!important;
+}
+#app .mood-btn.selected{
+  background:#eaf8f3!important;
+  color:#418c78!important;
+  border-color:#b9e0d3!important;
+}
+
+/* QUOTE */
+#app .quote-card{
+  background:linear-gradient(135deg,#fff8f5,#fff)!important;
+  border-left:5px solid #ff7865!important;
+  color:#4c5568!important;
+}
+#app .quote-card:before{color:#ef6957!important;}
+
+/* SCHEDULE */
+#app .sched-block{border-left:4px solid #5ca9d6!important;}
+#app .sched-block.sched-done{border-left-color:#59b39b!important;}
+#app .sched-toggle-btn{
+  background:#f7f8fb!important;
+  color:#697185!important;
+  border:1px solid #e3e6ee!important;
+  box-shadow:none!important;
+}
+#app .sched-toggle-btn.active{
+  background:#edf7fd!important;
+  color:#4283aa!important;
+  border-color:#c7e3f2!important;
+}
+
+/* INPUTS */
+#app .form-row input,
+#app .note-input{
+  background:#fafbfc!important;
+  color:#202536!important;
+  border:1px solid #dfe3eb!important;
+}
+#app .form-row input:focus,
+#app .note-input:focus{
+  border-color:#b8aff0!important;
+  box-shadow:0 0 0 4px rgba(123,110,230,.09)!important;
+}
+
+/* BUDDY HERO */
+#app .buddy-card{
+  background:
+    radial-gradient(circle at 4% 10%,rgba(255,111,97,.12),transparent 30%),
+    radial-gradient(circle at 96% 90%,rgba(123,110,230,.13),transparent 32%),
+    linear-gradient(135deg,#fff,#faf9ff)!important;
+  border:1px solid #e3e1f0!important;
+  box-shadow:0 14px 36px rgba(123,110,230,.08)!important;
+}
+#app .buddy-card::before{
+  background:#ff6f61!important;
+  opacity:.08!important;
+}
+#app .buddy-kicker{
+  background:#fff0eb!important;
+  color:#cf604e!important;
+}
+#app .buddy-name{color:#202536!important;}
+#app .buddy-message{color:#697185!important;}
+#app .buddy-mood-chip{
+  background:#efedff!important;
+  color:#665bd0!important;
+  border:1px solid #ddd8fa!important;
+}
+#app .buddy-action{
+  background:linear-gradient(135deg,#7b6ee6,#685bd2)!important;
+  box-shadow:0 6px 16px rgba(123,110,230,.22)!important;
+}
+
+/* FLOATING COMPANION */
+#floatingBuddyBubble{
+  background:#fff!important;
+  color:#394256!important;
+  border:1px solid #e1e4ec!important;
+  box-shadow:0 10px 25px rgba(32,37,54,.12)!important;
+}
+#floatingBuddyCanvas{
+  filter:drop-shadow(0 12px 18px rgba(32,37,54,.12))!important;
+}
+
+/* ONBOARDING */
+#app .buddy-onboarding{
+  background:
+    radial-gradient(circle at 10% 10%,rgba(255,111,97,.15),transparent 30%),
+    radial-gradient(circle at 90% 90%,rgba(123,110,230,.16),transparent 30%),
+    #f2f3fa!important;
+}
+#app .buddy-onboarding-card{
+  background:#fff!important;
+  border:1px solid #e1e4ed!important;
+  box-shadow:0 20px 55px rgba(32,37,54,.13)!important;
+}
+#app .buddy-gender-btn{
+  background:#f8f9fc!important;
+  color:#30384b!important;
+  border:1px solid #e0e4ed!important;
+}
+#app .buddy-gender-btn.active{
+  background:#efedff!important;
+  color:#5d53c1!important;
+  border-color:#c9c2f2!important;
+}
+
+/* MOBILE NAV */
+@media(max-width:719px){
+  #app .app-tabbar{
+    background:rgba(255,255,255,.98)!important;
+    border-top:1px solid #e3e6ed!important;
+    box-shadow:0 -10px 28px rgba(32,37,54,.10)!important;
+  }
+  #app .tab-btn.active{
+    background:#efedff!important;
+    color:#655bd0!important;
+    box-shadow:inset 0 -3px 0 #7b6ee6!important;
+  }
+}
+
+/* Keep the whole product colorful through accents, not giant saturated blocks. */
+#app .panel-title{color:#343c4f!important;}
+#app .day-detail{background:#f7f8fb!important;}
+#app .cal-today{outline:2px solid #ff6f61!important;}
+#app .cal-done{background:#59b39b!important;}
+</style>
+
+
+<style id="kp-home-reimagined-v6">
+/* =========================================================
+   KEEP PUSHING — V6 HOME SCREEN RECOMPOSITION
+   A new dashboard composition using the existing functionality.
+   ========================================================= */
+
+/* ---------- Home canvas ---------- */
+#app .content{
+  max-width:1120px!important;
+  margin:0 auto!important;
+  padding:20px 8px 80px!important;
+}
+#app .app-main{
+  padding:24px 30px 40px!important;
+}
+
+/* ---------- Dashboard grid ---------- */
+#app .content > .section:first-of-type{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr)!important;
+  grid-template-areas:
+    "welcome buddy"
+    "task buddy"
+    "progress progress"
+    "quick quick"
+    "insight insight"!important;
+  gap:16px!important;
+  align-items:stretch!important;
+}
+
+/* Put existing home sections into a deliberate layout */
+#app .content > .section:first-of-type > *{
+  min-width:0!important;
+}
+
+/* ---------- Hero / welcome ---------- */
+#app .content > .section:first-of-type .hero,
+#app .content > .section:first-of-type .welcome-card,
+#app .content > .section:first-of-type .greeting-card{
+  grid-area:welcome!important;
+}
+
+/* If the app uses a generic first panel, make it the hero */
+#app .content > .section:first-of-type > .panel:first-child{
+  grid-area:welcome!important;
+}
+
+/* ---------- Buddy ---------- */
+#app .content > .section:first-of-type .buddy-card{
+  grid-area:buddy!important;
+  min-height:100%!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+  position:relative!important;
+}
+
+/* Buddy becomes the visual anchor */
+#app .buddy-card{
+  border-radius:26px!important;
+  padding:24px!important;
+  background:
+    radial-gradient(circle at 85% 15%,rgba(123,110,230,.16),transparent 31%),
+    radial-gradient(circle at 8% 90%,rgba(255,111,97,.13),transparent 34%),
+    linear-gradient(145deg,#ffffff,#faf9ff)!important;
+}
+#app .buddy-card:after{
+  content:"";
+  position:absolute;
+  width:170px;height:170px;
+  right:-60px;bottom:-65px;
+  border-radius:50%;
+  background:rgba(123,110,230,.08);
+  pointer-events:none;
+}
+#app .buddy-card-inner{
+  position:relative!important;
+  z-index:2!important;
+  flex-direction:column!important;
+  text-align:center!important;
+  gap:8px!important;
+}
+#app .buddy-character-stage{
+  flex:0 0 auto!important;
+  width:190px!important;
+  min-height:185px!important;
+  margin:0 auto 4px!important;
+}
+#app .buddy-character{
+  width:155px!important;
+  height:175px!important;
+}
+#app .buddy-copy{
+  padding:0!important;
+}
+#app .buddy-kicker{
+  font-size:10px!important;
+  letter-spacing:.10em!important;
+}
+#app .buddy-name{
+  font-size:24px!important;
+  margin:5px 0!important;
+}
+#app .buddy-message{
+  max-width:285px!important;
+  margin:0 auto!important;
+  font-size:13px!important;
+}
+#app .buddy-action{
+  margin-top:10px!important;
+}
+
+/* ---------- Daily task ---------- */
+#app .content > .section:first-of-type .task-card{
+  grid-area:task!important;
+  border-radius:26px!important;
+  min-height:250px!important;
+  padding:28px!important;
+  justify-content:center!important;
+}
+#app .task-card:after{
+  content:"TODAY'S FOCUS";
+  position:absolute;
+  right:24px;top:20px;
+  padding:6px 9px;
+  border-radius:999px;
+  background:#fff0eb;
+  color:#cf604e;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.10em;
+}
+#app .task-card .task-text{
+  font-size:21px!important;
+  line-height:1.35!important;
+}
+#app .task-card .timer{
+  font-size:48px!important;
+  letter-spacing:-.04em!important;
+}
+
+/* ---------- Progress strip ---------- */
+#app .content > .section:first-of-type .progress-card,
+#app .content > .section:first-of-type .progress-panel{
+  grid-area:progress!important;
+}
+
+/* Make common stats/progress row look like a single product module */
+#app .content > .section:first-of-type .stats-row{
+  grid-area:progress!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,1fr)!important;
+  gap:12px!important;
+}
+
+/* ---------- Quick actions ---------- */
+#app .quick-actions,
+#app .quick-action-grid,
+#app .actions-grid{
+  grid-area:quick!important;
+}
+#app .quick-action,
+#app .quick-actions button,
+#app .quick-action-grid > *{
+  min-height:72px!important;
+  border-radius:18px!important;
+}
+
+/* ---------- Insight / quote ---------- */
+#app .content > .section:first-of-type .quote-card{
+  grid-area:insight!important;
+  border-radius:20px!important;
+  padding:20px 24px!important;
+}
+
+/* ---------- Home typography ---------- */
+#app .content > .section:first-of-type h2{
+  letter-spacing:-.025em!important;
+}
+#app .content > .section:first-of-type .section-title{
+  color:#343c4f!important;
+}
+
+/* ---------- Hide duplicated "dashboard clutter" on Home only ---------- */
+#app .content > .section:first-of-type .desktop-only-secondary{
+  opacity:.95!important;
+}
+
+/* ---------- Mobile composition ---------- */
+@media(max-width:719px){
+  #app .app-main{
+    padding:10px 12px 86px!important;
+  }
+  #app .content{
+    padding:8px 0 90px!important;
+  }
+
+  #app .content > .section:first-of-type{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:12px!important;
+  }
+
+  /* Buddy first: personal greeting */
+  #app .content > .section:first-of-type .buddy-card{
+    order:1!important;
+    min-height:270px!important;
+    padding:18px!important;
+  }
+  #app .buddy-character-stage{
+    width:145px!important;
+    min-height:140px!important;
+  }
+  #app .buddy-character{
+    width:120px!important;
+    height:135px!important;
+  }
+
+  /* Task second: immediate action */
+  #app .content > .section:first-of-type .task-card{
+    order:2!important;
+    min-height:215px!important;
+    padding:23px 18px!important;
+  }
+  #app .task-card:after{
+    right:16px;top:14px;
+    font-size:8px;
+  }
+  #app .task-card .task-text{font-size:18px!important;}
+  #app .task-card .timer{font-size:38px!important;}
+
+  /* Progress third */
+  #app .content > .section:first-of-type .stats-row{
+    order:3!important;
+    grid-template-columns:repeat(2,1fr)!important;
+  }
+
+  /* Everything else */
+  #app .content > .section:first-of-type .quote-card{
+    order:4!important;
+  }
+}
+
+/* ---------- Small phones ---------- */
+@media(max-width:390px){
+  #app .buddy-card{min-height:250px!important;}
+  #app .buddy-name{font-size:21px!important;}
+  #app .task-card .timer{font-size:34px!important;}
+}
+</style>
+
 </head>
 <body>
 <div class="frame-outer"><div class="frame-box">
@@ -4497,6 +5329,43 @@ button:hover:not(:disabled){
     lastTap=now;
     canvas.style.transformOrigin="50% 80%";
   },{passive:true});
+})();
+</script>
+
+
+<script id="fresh-premium-v4-runtime">
+(function(){
+  const app=document.getElementById("app");
+  if(!app) return;
+  const obs=new MutationObserver(function(){
+    document.querySelectorAll(".mood-btn").forEach(function(b){
+      if(b.classList.contains("selected")) b.setAttribute("aria-pressed","true");
+    });
+  });
+  obs.observe(app,{subtree:true,childList:true,attributes:true,attributeFilter:["class"]});
+})();
+</script>
+
+
+<script id="kp-home-v6-runtime">
+(function(){
+  function homePolish(){
+    const root=document.getElementById("app");
+    if(!root)return;
+    const content=root.querySelector(".content");
+    if(!content)return;
+
+    /* Mark the Home screen for CSS targeting without changing functionality. */
+    const active=root.querySelector(".tab-btn.active");
+    if(active){
+      const label=(active.textContent||"").trim().toLowerCase();
+      content.classList.toggle("kp-home-active",label==="today"||label==="home");
+    }
+  }
+  const o=new MutationObserver(homePolish);
+  const root=document.getElementById("app");
+  if(root)o.observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:["class"]});
+  homePolish();
 })();
 </script>
 
