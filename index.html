@@ -62,13 +62,474 @@
   @media (min-width: 1200px) {
     .frame-box { max-width: 1040px; }
   }
+
+<style id="buddy-system-styles">
+  /* ===== Motivation Buddy system ===== */
+  .app-shell {
+    transition: background-color .9s ease, color .6s ease;
+  }
+  .app-shell .app-body,
+  .app-shell .app-header,
+  .app-shell .panel,
+  .app-shell .mood-card,
+  .app-shell .task-card,
+  .app-shell .quote-card,
+  .app-shell .note-card {
+    transition: background-color .9s ease, border-color .9s ease, color .6s ease, box-shadow .9s ease;
+  }
+
+  .buddy-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 16px;
+    border: 1px solid var(--line);
+    background: linear-gradient(145deg, var(--bg-panel), var(--bg-panel-2));
+    box-shadow: 0 12px 28px rgba(0,0,0,.12);
+  }
+  .buddy-card::before {
+    content: "";
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    right: -60px;
+    top: -70px;
+    border-radius: 50%;
+    background: var(--amber);
+    opacity: .12;
+    animation: buddyAura 3.8s ease-in-out infinite;
+  }
+  .buddy-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .buddy-art-wrap {
+    flex: 0 0 128px;
+    min-height: 140px;
+    display: grid;
+    place-items: center;
+    position: relative;
+  }
+  .buddy-art-wrap::after {
+    content: "";
+    position: absolute;
+    bottom: 4px;
+    width: 92px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--amber);
+    opacity: .14;
+    filter: blur(5px);
+  }
+  .buddy-art {
+    width: 128px;
+    height: 150px;
+    position: relative;
+    z-index: 2;
+    animation: buddyFloat 3s ease-in-out infinite;
+  }
+  .buddy-art.buddy-rough { animation: buddyComfort 3.2s ease-in-out infinite; }
+  .buddy-art.buddy-good { animation: buddyCheer .8s ease-in-out infinite alternate; }
+  .buddy-copy { flex: 1; min-width: 0; }
+  .buddy-kicker {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--ink-faint);
+    font-weight: 800;
+    margin-bottom: 5px;
+  }
+  .buddy-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .buddy-message {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .buddy-action {
+    width: auto;
+    padding: 9px 13px;
+    border-radius: 999px;
+    font-size: 12px;
+  }
+  .buddy-mood-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: var(--bg-panel-2);
+    color: var(--ink-soft);
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  /* Character onboarding */
+  .buddy-onboarding {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255,138,61,.18), transparent 28%),
+      radial-gradient(circle at 85% 80%, rgba(47,182,165,.14), transparent 30%),
+      linear-gradient(160deg, #180F26, #2C1F42 55%, #160C22);
+    color: #fff;
+    overflow: auto;
+  }
+  .buddy-onboarding-card {
+    width: min(560px, 100%);
+    padding: 28px;
+    border-radius: 26px;
+    border: 1px solid rgba(255,255,255,.13);
+    background: rgba(20,13,38,.82);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 24px 70px rgba(0,0,0,.4);
+    animation: buddyOnboardIn .65s cubic-bezier(.2,.8,.2,1) both;
+    text-align: center;
+  }
+  .buddy-sparkle {
+    font-size: 28px;
+    margin-bottom: 5px;
+    animation: buddySparkle 2s ease-in-out infinite;
+  }
+  .buddy-onboarding h2 {
+    margin: 0 0 8px;
+    font-size: clamp(26px, 6vw, 38px);
+    letter-spacing: -.02em;
+  }
+  .buddy-onboarding p {
+    margin: 0 auto 20px;
+    max-width: 430px;
+    color: rgba(255,255,255,.74);
+    line-height: 1.55;
+  }
+  .buddy-gender-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 18px 0;
+  }
+  .buddy-gender-btn {
+    min-height: 160px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.06);
+    color: #fff;
+    border-radius: 20px;
+    padding: 14px;
+    cursor: pointer;
+    box-shadow: none;
+  }
+  .buddy-gender-btn:hover { background: rgba(255,255,255,.1); }
+  .buddy-gender-btn.active {
+    border-color: #FFB23D;
+    background: rgba(255,178,61,.13);
+    box-shadow: 0 0 0 2px rgba(255,178,61,.22), 0 12px 30px rgba(0,0,0,.18);
+  }
+  .buddy-gender-emoji { font-size: 58px; display: block; margin-bottom: 8px; }
+  .buddy-gender-label { font-size: 16px; font-weight: 800; }
+  .buddy-name-input {
+    width: 100%;
+    border: 1px solid rgba(255,255,255,.16);
+    background: rgba(255,255,255,.07);
+    color: #fff;
+    border-radius: 14px;
+    padding: 15px 16px;
+    font-size: 16px;
+    outline: none;
+  }
+  .buddy-name-input::placeholder { color: rgba(255,255,255,.42); }
+  .buddy-name-input:focus {
+    border-color: #FFB23D;
+    box-shadow: 0 0 0 3px rgba(255,178,61,.12);
+  }
+  .buddy-create-btn {
+    margin-top: 16px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #FF7B62, #FFB23D);
+    color: #28130B;
+    font-size: 16px;
+    padding: 15px;
+  }
+  .buddy-onboard-preview {
+    margin: 12px auto 0;
+    min-height: 100px;
+    display: grid;
+    place-items: center;
+  }
+
+  /* Buddy settings */
+  .buddy-settings-preview {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg-panel-2);
+    border-radius: 16px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .buddy-mini-art { width: 78px; height: 90px; flex: 0 0 78px; }
+  .buddy-mini-copy { flex: 1; }
+  .buddy-mini-name { font-weight: 800; font-size: 17px; }
+  .buddy-mini-meta { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+
+  /* Mood celebration / transition */
+  #buddyMoodBurst {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    pointer-events: none;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+  }
+  #buddyMoodBurst.show { animation: moodBurst .95s ease both; }
+  .buddy-burst-card {
+    padding: 15px 20px;
+    border-radius: 999px;
+    background: rgba(25,18,40,.9);
+    color: #fff;
+    box-shadow: 0 14px 45px rgba(0,0,0,.28);
+    text-align: center;
+    font-weight: 800;
+    font-size: 14px;
+  }
+
+  @keyframes buddyFloat {
+    0%,100% { transform: translateY(0) rotate(-1deg); }
+    50% { transform: translateY(-7px) rotate(1deg); }
+  }
+  @keyframes buddyComfort {
+    0%,100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-3px) rotate(2deg); }
+  }
+  @keyframes buddyCheer {
+    from { transform: translateY(0) rotate(-3deg) scale(1); }
+    to { transform: translateY(-8px) rotate(3deg) scale(1.04); }
+  }
+  @keyframes buddyAura {
+    0%,100% { transform: scale(.92); opacity: .08; }
+    50% { transform: scale(1.12); opacity: .18; }
+  }
+  @keyframes buddyOnboardIn {
+    from { opacity: 0; transform: translateY(24px) scale(.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes buddySparkle {
+    0%,100% { transform: scale(1) rotate(0); }
+    50% { transform: scale(1.15) rotate(6deg); }
+  }
+  @keyframes moodBurst {
+    0% { opacity: 0; transform: scale(.82); }
+    18% { opacity: 1; transform: scale(1); }
+    75% { opacity: 1; transform: scale(1.02); }
+    100% { opacity: 0; transform: scale(1.06); }
+  }
+
+  @media (max-width: 520px) {
+    .buddy-row { align-items: flex-start; }
+    .buddy-art-wrap { flex-basis: 100px; }
+    .buddy-art { width: 100px; height: 124px; }
+    .buddy-name { font-size: 19px; }
+    .buddy-message { font-size: 13px; }
+    .buddy-onboarding-card { padding: 22px 18px; }
+    .buddy-gender-btn { min-height: 135px; }
+    .buddy-gender-emoji { font-size: 46px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .buddy-art, .buddy-card::before, .buddy-sparkle,
+    .buddy-onboarding-card, #buddyMoodBurst.show {
+      animation: none !important;
+    }
+    .app-shell .app-body, .app-shell .app-header, .app-shell .panel,
+    .app-shell .mood-card, .app-shell .task-card, .app-shell .quote-card,
+    .app-shell .note-card { transition: none !important; }
+  }
 </style>
+</style>
+<style id="buddy-existing-account-fix">
+  .buddy-cloud-note{margin-top:10px;font-size:12px;line-height:1.45;color:rgba(255,255,255,.62)}
+</style>
+
+<style id="floating-buddy-system">
+#floatingBuddyStage{position:fixed;right:16px;bottom:16px;z-index:8000;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+#floatingBuddyPanel{width:230px;max-width:calc(100vw - 32px);padding:14px 16px;border:1px solid var(--line);border-radius:16px 16px 4px 16px;background:color-mix(in srgb,var(--bg-panel) 96%,transparent);color:var(--ink-light);box-shadow:0 16px 40px rgba(0,0,0,.28);backdrop-filter:blur(12px);opacity:0;transform:translateY(8px) scale(.96);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
+#floatingBuddyPanel.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+#floatingBuddyPanel .fb-name{font-weight:800;font-size:13px;margin-bottom:4px}
+#floatingBuddyPanel .fb-msg{font-size:12.5px;line-height:1.45}
+#floatingBuddyDock{position:relative;width:60px;height:60px;border-radius:50%;background:var(--bg-panel);border:1px solid var(--line);box-shadow:0 8px 22px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0;cursor:pointer;animation:floatingBuddyBob 3.6s ease-in-out infinite}
+#floatingBuddyIcon{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+#floatingBuddyIcon svg{width:44px;height:54px;display:block}
+#floatingBuddyDot{position:absolute;top:3px;right:3px;width:11px;height:11px;border-radius:50%;background:var(--rust);border:2px solid var(--bg-panel);display:none}
+#floatingBuddyDot.show{display:block}
+@keyframes floatingBuddyBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media(prefers-reduced-motion:reduce){#floatingBuddyDock{animation:none}#floatingBuddyPanel{transition:none}}
+</style>
+
 </head>
 <body>
 <div class="frame-outer"><div class="frame-box">
 <canvas id="bgCanvas" aria-hidden="true"></canvas>
 <div id="app"></div>
 <div id="toastLayer" aria-live="polite"></div>
+<div id="kpCelebration" aria-hidden="true"></div>
+<div id="buddyMoodBurst" aria-hidden="true"></div>
+<div id="floatingBuddyStage" aria-hidden="true" style="display:none;">
+  <div id="floatingBuddyPanel"></div>
+  <button id="floatingBuddyDock" aria-label="Open your buddy" type="button">
+    <span id="floatingBuddyIcon"></span>
+    <span id="floatingBuddyDot"></span>
+  </button>
+</div>
+<style id="enhanced-animations">
+  /* === Keep Pushing — enhanced motion layer === */
+  @keyframes kpFadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes kpFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes kpPop {
+    0% { opacity: 0; transform: scale(.86); }
+    70% { transform: scale(1.04); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes kpPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.035); }
+  }
+  @keyframes kpFlame {
+    0%, 100% { transform: rotate(-2deg) scaleY(1); transform-origin: 70px 76px; }
+    50% { transform: rotate(2deg) scaleY(1.08); transform-origin: 70px 76px; }
+  }
+  @keyframes kpSpark {
+    0% { opacity: 0; transform: translateY(8px) scale(.5); }
+    25% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-24px) scale(1.15); }
+  }
+  @keyframes kpCheck {
+    0% { opacity: 0; transform: scale(.5) rotate(-8deg); }
+    70% { transform: scale(1.12) rotate(2deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0); }
+  }
+  @keyframes kpNumber {
+    0% { opacity: .2; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes kpConfetti {
+    0% { opacity: 1; transform: translate(0,0) rotate(0); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(720deg); }
+  }
+
+  /* Smooth page/tab content entrance */
+  #app .content { animation: kpFadeIn .32s ease both; }
+  #app .panel, #app .task-card, #app .mood-card, #app .note-card,
+  #app .quote-card, #app .sched-block, #app .stat {
+    animation: kpFadeUp .36s ease both;
+  }
+
+  /* Interactive polish */
+  #app button:not(:disabled) {
+    transition: transform .16s ease, box-shadow .18s ease, filter .18s ease, background .18s ease;
+  }
+  #app button:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0,0,0,.12);
+  }
+  #app button:not(:disabled):active {
+    transform: translateY(1px) scale(.985);
+  }
+  .tab-btn { transition: background .2s ease, color .2s ease, transform .16s ease; }
+  .tab-btn:hover { transform: translateX(2px); }
+  .video-card { transition: transform .2s ease, box-shadow .2s ease; }
+  .video-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.14); }
+
+  /* Lamp flame */
+  .lamp-wrap svg .kp-flame {
+    animation: kpFlame 1.25s ease-in-out infinite;
+  }
+  .lamp-wrap svg .kp-glow {
+    animation: kpPulse 2.4s ease-in-out infinite;
+    transform-origin: 70px 70px;
+  }
+
+  /* Completion state */
+  .kp-completed {
+    animation: kpPop .42s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .done-msg {
+    animation: kpCheck .45s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .kp-stat-number {
+    display: inline-block;
+    animation: kpNumber .35s ease both;
+  }
+
+  /* Final timer countdown */
+  .kp-timer-final {
+    animation: kpPulse .65s ease-in-out infinite;
+  }
+
+  /* Celebration overlay */
+  #kpCelebration {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+  }
+  .kp-confetti-piece {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: 7px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--kp-confetti, var(--amber));
+    animation: kpConfetti .85s cubic-bezier(.15,.75,.25,1) forwards;
+  }
+  .kp-celebrate-badge {
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    transform: translate(-50%, -50%);
+    padding: 12px 18px;
+    border-radius: 999px;
+    background: var(--bg-panel);
+    color: var(--ink-light);
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 34px rgba(0,0,0,.2);
+    font-weight: 800;
+    animation: kpPop .45s ease both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #app .content, #app .panel, #app .task-card, #app .mood-card,
+    #app .note-card, #app .quote-card, #app .sched-block, #app .stat,
+    .lamp-wrap svg .kp-flame, .lamp-wrap svg .kp-glow, .kp-completed,
+    .done-msg, .kp-stat-number, .kp-timer-final, .kp-confetti-piece,
+    .kp-celebrate-badge {
+      animation: none !important;
+    }
+    #app button:not(:disabled), .tab-btn, .video-card {
+      transition: none !important;
+    }
+  }
+</style>
 <style>
   :root {
     --bg-deep: #241934;
@@ -749,6 +1210,10 @@
         saved = mergeSaved(saved, cloudData);
         deriveStatsFromHistory(saved);
         try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+
+        // Existing signed-in accounts get the new buddy setup without
+        // creating another account or requiring sign-out.
+        if (!saved.buddy || !saved.buddy.name || !saved.buddy.gender) saved.buddy = null;
         await pushToCloud();
       } else {
         await pushToCloud();
@@ -841,6 +1306,7 @@
     saved.moodLog[todayStr()] = mood;
     saved.moodSetAtCount = saved.totalCompleted || 0;
     try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+    scheduleCloudSave();
   }
 
   function moodNeedsCheckin() {
@@ -881,6 +1347,38 @@
     };
   }
 
+  // ---------- Enhanced motion helpers ----------
+  function celebrateCompletion() {
+    const layer = document.getElementById("kpCelebration");
+    if (!layer || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    layer.innerHTML = `<div class="kp-celebrate-badge">✓ ${esc(buddyName())} says: You did it! ✨</div>`;
+    const pieces = 22;
+    for (let i = 0; i < pieces; i++) {
+      const p = document.createElement("span");
+      p.className = "kp-confetti-piece";
+      const angle = (Math.PI * 2 * i / pieces) + (Math.random() - .5) * .5;
+      const distance = 70 + Math.random() * 150;
+      p.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+      p.style.setProperty("--dy", `${Math.sin(angle) * distance - 35}px`);
+      p.style.setProperty("--kp-confetti", ["var(--amber)", "var(--teal)", "var(--rust)"][i % 3]);
+      p.style.marginLeft = `${(Math.random() - .5) * 16}px`;
+      p.style.marginTop = `${(Math.random() - .5) * 10}px`;
+      layer.appendChild(p);
+    }
+    setTimeout(() => { layer.innerHTML = ""; }, 1000);
+  }
+
+  function animateNewTask() {
+    requestAnimationFrame(() => {
+      const card = document.querySelector(".task-card");
+      if (card) {
+        card.classList.remove("kp-completed");
+        void card.offsetWidth;
+        card.classList.add("kp-completed");
+      }
+    });
+  }
+
   // ---------- Signature: the lamp ----------
   function renderLamp() {
     const stage = Math.min(Math.floor(saved.totalCompleted / 5), 5);
@@ -906,14 +1404,14 @@
               <stop offset="100%" stop-color="var(--amber)" stop-opacity="0"/>
             </radialGradient>
           </defs>
-          <circle cx="70" cy="70" r="${glowRadius}" fill="url(#glow)"/>
+          <circle class="kp-glow" cx="70" cy="70" r="${glowRadius}" fill="url(#glow)"/>
           <path d="M 55 130 L 60 100 L 80 100 L 85 130 Z" fill="#3A4756"/>
           <ellipse cx="70" cy="130" rx="22" ry="5" fill="#2A343F"/>
           <path d="M 45 100 Q 70 90 95 100 L 90 78 Q 70 70 50 78 Z" fill="#4A5A6C"/>
           <ellipse cx="70" cy="78" rx="20" ry="7" fill="#3A4756"/>
           <ellipse cx="70" cy="76" rx="15" ry="5" fill="#1C242D"/>
           ${stage > 0 ? `
-            <path d="M 70 ${76 - flameHeight} Q ${77} ${76 - flameHeight * 0.5} 70 76 Q ${63} ${76 - flameHeight * 0.5} 70 ${76 - flameHeight} Z"
+            <path class="kp-flame" d="M 70 ${76 - flameHeight} Q ${77} ${76 - flameHeight * 0.5} 70 76 Q ${63} ${76 - flameHeight * 0.5} 70 ${76 - flameHeight} Z"
                   fill="var(--amber)"/>
             <path d="M 70 ${76 - flameHeight * 0.6} Q ${73} ${76 - flameHeight * 0.3} 70 76 Q ${67} ${76 - flameHeight * 0.3} 70 ${76 - flameHeight * 0.6} Z"
                   fill="#FCE2AE"/>
@@ -967,7 +1465,7 @@
           <div class="done-msg">✓ Nice work — that's done.</div>
           <button id="nextBtn" style="margin-top:14px;">Get another task</button>
         ` : session.running ? `
-          <div class="timer">${fmtTime(session.secondsLeft)}</div>
+          <div class="timer ${session.secondsLeft <= 10 ? "kp-timer-final" : ""}">${fmtTime(session.secondsLeft)}</div>
           <button disabled>Stay with it — timer running</button>
         ` : `
           <div class="timer-hint">Takes about ${session.minutes} min${session.minutes === 1 ? "" : "s"}</div>
@@ -1011,13 +1509,29 @@
 
   const MOOD_GUIDANCE = {
     rough: {
-      message: "Today's just hard, and that's okay — you don't have to push through it alone or all at once. You showed up here, and that already counts for something. Whenever you're ready, there's just one small thing waiting for you. Nothing more than that right now."
+      title: "Rough day — let's just get through it",
+      body: "That's completely okay. You don't need to do much today — just one small, doable thing is enough to keep your streak and your momentum alive.",
+      tips: [
+        "Take a slow breath before you start — no rush.",
+        "Pick the smallest task on the list if this one feels like too much.",
+        "If you want to get it off your chest, the Journal tab is right there."
+      ]
     },
     okay: {
-      message: "Nothing to prove today — just keep the thread going. One task, done at your own pace, is a real win. That's genuinely enough."
+      title: "Steady day",
+      body: "Nothing dramatic needed — just keep showing up. Small, consistent steps are what actually build the streak.",
+      tips: [
+        "One task, done well, is a win.",
+        "If you find extra energy partway through, feel free to do another."
+      ]
     },
     good: {
-      message: "You've got real energy today — enjoy it while it's here. Take this one on, and if there's still gas in the tank after, come back for another round."
+      title: "Good energy — let's use it",
+      body: "Nice, you've got some momentum today. Use it while it's here — take on the task, and if you're still going after, come back for another.",
+      tips: [
+        "Consider a slightly bigger or harder task than usual.",
+        "Finished early? Hit 'Skip, give me another' for a bonus round."
+      ]
     }
   };
 
@@ -1027,7 +1541,7 @@
   function moodIllustrationSVG(mood) {
     if (mood === "rough") {
       return `
-        <svg viewBox="0 0 120 90" width="120" height="90" aria-hidden="true">
+        <svg viewBox="0 0 120 90" width="110" height="82" aria-hidden="true">
           <ellipse cx="60" cy="80" rx="46" ry="6" fill="var(--line)"/>
           <path d="M30 78 Q30 50 40 40 Q60 22 80 40 Q90 50 90 78 Z" fill="var(--amber)" opacity="0.25"/>
           <rect x="38" y="50" width="44" height="30" rx="8" fill="var(--bg-panel)" stroke="var(--amber-dim)" stroke-width="2"/>
@@ -1040,7 +1554,7 @@
     }
     if (mood === "good") {
       return `
-        <svg viewBox="0 0 120 90" width="120" height="90" aria-hidden="true">
+        <svg viewBox="0 0 120 90" width="110" height="82" aria-hidden="true">
           <circle cx="60" cy="46" r="24" fill="var(--amber)" opacity="0.18"/>
           <circle cx="60" cy="46" r="15" fill="var(--amber)"/>
           <g stroke="var(--teal)" stroke-width="4" stroke-linecap="round">
@@ -1057,7 +1571,7 @@
       `;
     }
     return `
-      <svg viewBox="0 0 120 90" width="120" height="90" aria-hidden="true">
+      <svg viewBox="0 0 120 90" width="110" height="82" aria-hidden="true">
         <ellipse cx="60" cy="80" rx="40" ry="5" fill="var(--line)"/>
         <path d="M60 78 V44" stroke="var(--amber-dim)" stroke-width="4" stroke-linecap="round"/>
         <path d="M60 50 Q46 44 44 28 Q56 32 60 44 Q64 32 76 28 Q74 44 60 50 Z" fill="var(--teal)"/>
@@ -1072,27 +1586,31 @@
     const g = MOOD_GUIDANCE[mood];
     if (!g) return "";
     const showVideo = mood === "rough" || mood === "good";
-    let videoLine = "";
+    let videoBlock = "";
     if (showVideo) {
       const v = pickMeUpVideo();
       const vidKey = extractYouTubeId(v.url) || v.url;
-      const cta = mood === "rough" ? "Or just watch something for a few minutes" : "Want to keep the energy going? Watch this";
-      videoLine = `
-        <button id="pickMeUpVideoBtn" data-vidkey="${esc(vidKey)}" class="mood-soft-link">
-          ▶ ${esc(cta)} — "${esc(v.title || v.url)}"
+      const cta = mood === "rough" ? "Watch something to lift you up" : "Ride the momentum — watch this";
+      videoBlock = `
+        <button id="pickMeUpVideoBtn" data-vidkey="${esc(vidKey)}" class="link-btn" style="margin-top:10px; display:block;">
+          ▶ ${esc(cta)}: "${esc(v.title || v.url)}"
         </button>
       `;
     }
-    const extra = mood === "rough"
-      ? `<button id="goJournalBtn" class="mood-soft-link">✎ Or write it out — the Journal's right there</button>`
-      : "";
     return `
-      <div class="guidance-card mood-guidance-${mood}">
-        <div class="mood-glow">${moodIllustrationSVG(mood)}</div>
-        <div class="mood-message">${esc(g.message)}</div>
-        ${videoLine}
-        ${extra}
-        <button id="changeMoodBtn" class="mood-soft-link mood-soft-link-muted">Feeling different now? Change it</button>
+      <div class="panel" style="margin-bottom:14px;">
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:8px;">
+          ${moodIllustrationSVG(mood)}
+          <div>
+            <div class="panel-title" style="margin-bottom:4px;">${esc(g.title)}</div>
+            <div class="note-text">${esc(g.body)}</div>
+          </div>
+        </div>
+        <ul style="margin:0; padding-left:18px; color:var(--ink-soft); font-size:13px; line-height:1.6;">
+          ${g.tips.map(t => `<li>${esc(t)}</li>`).join("")}
+        </ul>
+        ${videoBlock}
+        <button id="changeMoodBtn" class="link-btn" style="margin-top:10px; display:block;">Actually, I feel different — change it</button>
       </div>
     `;
   }
@@ -1499,6 +2017,245 @@
     `;
   }
 
+
+  // ---------- Motivation Buddy ----------
+  let onboardingBuddy = { gender: "boy", name: "" };
+
+  const BUDDY_MOOD = {
+    rough: {
+      label: "Rough day",
+      emoji: "🌧️",
+      kicker: "I'm staying with you",
+      message: (name) => `Hey ${name}… it's okay to have a rough day. Let's make the next tiny step easier. 💛`,
+      button: "Give me one tiny step",
+      burst: "🌤️ One tiny step together",
+      outfit: "comfort"
+    },
+    okay: {
+      label: "Okay day",
+      emoji: "☀️",
+      kicker: "We're doing alright",
+      message: (name) => `Nice to see you, ${name}. No pressure — let's keep moving one step at a time. ✨`,
+      button: "Let's keep going",
+      burst: "☀️ Steady energy unlocked",
+      outfit: "hoodie"
+    },
+    good: {
+      label: "Good day",
+      emoji: "🔥",
+      kicker: "Let's use this energy",
+      message: (name) => `YES! ${name} is ready! You've got momentum today — let's make it count! 🔥`,
+      button: "Let's make it count",
+      burst: "🔥 Momentum mode!",
+      outfit: "energy"
+    }
+  };
+
+  function buddyName() {
+    return (saved && saved.buddy && saved.buddy.name) ? saved.buddy.name : "Buddy";
+  }
+
+  function buddyGender() {
+    return (saved && saved.buddy && saved.buddy.gender) ? saved.buddy.gender : "boy";
+  }
+
+  function buddyMood() {
+    return todaysMood() || "okay";
+  }
+
+  function buddySvg(style, mood, small = false) {
+    const cls = small ? "buddy-mini-art" : "buddy-character";
+    const warm = style !== "girl"; // "boy" slot = warm flame, "girl" slot = cool flame
+    const gradId = "buddyFlameGrad" + Math.random().toString(36).slice(2, 8);
+    const glowId = "buddyGlow" + Math.random().toString(36).slice(2, 8);
+
+    const outer = warm ? "#FF8A3D" : "#5FB8D9";
+    const mid = warm ? "#FFB25E" : "#8FD4E8";
+    const inner = warm ? "#FFE7BE" : "#DFF5F7";
+    const emberColor = warm ? "#E8613A" : "#3B7FA0";
+    const ink = "#3A2A1E";
+    const blush = warm ? "#FF6A4D" : "#FF8FA8";
+
+    // Chibi proportions: a small round body with two little flame-tip
+    // "ears" instead of one tall pointed flame, big close-set eyes, and a
+    // permanent soft blush (mood only changes the eyes/brows/mouth).
+    let eyes, brows, mouth, sparkle = "";
+    if (mood === "rough") {
+      eyes = `<path d="M40 92q7-4 14 0M66 92q7-4 14 0" fill="none" stroke="${ink}" stroke-width="4" stroke-linecap="round"/>`;
+      brows = `<path d="M38 82q8-5 15-1M67 81q8-4 15 1" fill="none" stroke="${ink}" stroke-width="2.4" stroke-linecap="round" opacity=".5"/>`;
+      mouth = `<path d="M48 108q12-3 24 0" fill="none" stroke="${ink}" stroke-width="2.8" stroke-linecap="round"/>`;
+    } else if (mood === "good") {
+      eyes = `<circle cx="47" cy="91" r="7" fill="${ink}"/><circle cx="73" cy="91" r="7" fill="${ink}"/><circle cx="49.3" cy="88.2" r="2.3" fill="#fff"/><circle cx="75.3" cy="88.2" r="2.3" fill="#fff"/>`;
+      brows = `<path d="M37 79q9-6 16 0M67 79q9-6 16 0" fill="none" stroke="${ink}" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>`;
+      mouth = `<path d="M46 106q14 13 28 0" fill="none" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>`;
+      sparkle = `<path d="M98 40l2.6 6 6.4 1.8-6.4 1.8-2.6 6-2.6-6-6.4-1.8 6.4-1.8Z" fill="${outer}" opacity=".85"/>`;
+    } else {
+      eyes = `<ellipse cx="47" cy="91" rx="6" ry="7.4" fill="${ink}"/><ellipse cx="73" cy="91" rx="6" ry="7.4" fill="${ink}"/><circle cx="49.2" cy="88" r="2" fill="#fff"/><circle cx="75.2" cy="88" r="2" fill="#fff"/>`;
+      brows = "";
+      mouth = `<path d="M49 106q11 8 22 0" fill="none" stroke="${ink}" stroke-width="2.6" stroke-linecap="round"/>`;
+    }
+    const cheeks = `<ellipse cx="38" cy="100" rx="6" ry="3.8" fill="${blush}" opacity=".45"/><ellipse cx="82" cy="100" rx="6" ry="3.8" fill="${blush}" opacity=".45"/>`;
+
+    return `
+      <svg class="${cls} buddy-${mood}" viewBox="0 0 120 150" role="img" aria-label="${esc(buddyName())}, motivation buddy">
+        <defs>
+          <radialGradient id="${glowId}" cx="50%" cy="58%" r="60%">
+            <stop offset="0%" stop-color="${outer}" stop-opacity=".38"/>
+            <stop offset="100%" stop-color="${outer}" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${inner}"/>
+            <stop offset="55%" stop-color="${mid}"/>
+            <stop offset="100%" stop-color="${outer}"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="60" cy="134" rx="30" ry="6.5" fill="#000" opacity=".12"/>
+        <circle cx="60" cy="92" r="56" fill="url(#${glowId})"/>
+        <ellipse cx="60" cy="122" rx="14" ry="8" fill="${emberColor}" opacity=".5"/>
+        <path d="M46 58C36 54 32 42 40 24C39 38 48 42 51 51C52 55 50 58 46 58Z" fill="url(#${gradId})"/>
+        <path d="M74 58C84 54 88 42 80 24C81 38 72 42 69 51C68 55 70 58 74 58Z" fill="url(#${gradId})"/>
+        <path d="M60 54C32 54 20 78 22 98C24 118 39 132 60 132C81 132 96 118 98 98C100 78 88 54 60 54Z" fill="url(#${gradId})"/>
+        <path d="M60 66C42 66 34 82 36 96C38 108 46 116 60 116C74 116 82 108 84 96C86 82 78 66 60 66Z" fill="${inner}" opacity=".5"/>
+        ${cheeks}
+        ${brows}
+        ${eyes}
+        ${mouth}
+        ${sparkle}
+      </svg>
+    `;
+  }
+
+  function renderBuddyCard() {
+    const mood = buddyMood();
+    const cfg = BUDDY_MOOD[mood];
+    return `
+      <div class="buddy-card mood-${mood}">
+        <div class="buddy-card-inner">
+          <div class="buddy-character-stage">${buddySvg(buddyGender(), mood)}</div>
+          <div class="buddy-copy">
+            <div class="buddy-kicker">${cfg.kicker}</div>
+            <div class="buddy-name">${esc(buddyName())} <span aria-hidden="true">✦</span></div>
+            <div class="buddy-mood-chip">${cfg.emoji} ${cfg.label}</div>
+            <div class="buddy-message">${esc(cfg.message(buddyName()))}</div>
+            <button id="buddyActionBtn" class="buddy-action">${cfg.button}</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderBuddyOnboarding() {
+    const gender = onboardingBuddy.gender;
+    const name = onboardingBuddy.name || "";
+    return `
+      <div class="buddy-onboarding">
+        <div class="buddy-onboarding-card">
+          <div class="buddy-sparkle">🔥</div>
+          <h2>Let's meet your flame!</h2>
+          <p>Your existing account is safe. This just adds a little companion flame that reacts to your mood and keeps you company.</p>
+
+          <div style="font-weight:800; font-size:14px; margin-bottom:8px;">Pick a flame style</div>
+          <div class="buddy-gender-grid">
+            <button type="button" class="buddy-gender-btn ${gender === "boy" ? "active" : ""}" data-buddy-gender="boy">
+              <span class="buddy-gender-emoji">🔥</span>
+              <span class="buddy-gender-label">Warm</span>
+            </button>
+            <button type="button" class="buddy-gender-btn ${gender === "girl" ? "active" : ""}" data-buddy-gender="girl">
+              <span class="buddy-gender-emoji">💠</span>
+              <span class="buddy-gender-label">Cool</span>
+            </button>
+          </div>
+
+          <div style="font-weight:800; font-size:14px; margin:8px 0;">Give your buddy a name</div>
+          <input id="buddyNameInput" class="buddy-name-input" maxlength="20" autocomplete="off"
+                 placeholder="e.g. Rohan, Mira, Sunny…" value="${esc(name)}" />
+
+          <div class="buddy-onboard-preview">
+            ${buddySvg(gender, "okay", true)}
+          </div>
+
+          <button id="createBuddyBtn" class="buddy-create-btn">Create My Buddy ✨</button>
+          <div id="buddyNameError" style="min-height:18px; margin-top:8px; font-size:12px; color:#FF9D9D;"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderBuddySettings() {
+    const mood = buddyMood();
+    return `
+      <div class="panel">
+        <div class="panel-title">Your Flame Buddy 🔥</div>
+        <div class="buddy-settings-preview">
+          ${buddySvg(buddyGender(), mood, true)}
+          <div class="buddy-mini-copy">
+            <div class="buddy-mini-name">${esc(buddyName())}</div>
+            <div class="buddy-mini-meta">${buddyGender() === "girl" ? "Cool flame" : "Warm flame"} · ${BUDDY_MOOD[mood].label}</div>
+          </div>
+        </div>
+        <div class="day-detail-empty" style="margin-bottom:10px;">
+          ${esc(buddyName())} changes expression, glow and messages based on your mood and progress.
+        </div>
+        <button id="changeBuddyBtn">Change my buddy</button>
+      </div>
+    `;
+  }
+
+  function beginBuddyChange() {
+    onboardingBuddy = {
+      gender: buddyGender(),
+      name: buddyName()
+    };
+    try { delete saved.buddy; } catch (e) {}
+    renderOnboardingOnly();
+  }
+
+  function renderOnboardingOnly() {
+    app.innerHTML = renderBuddyOnboarding();
+    wireBuddyOnboarding();
+  }
+
+  function wireBuddyOnboarding() {
+    document.querySelectorAll("[data-buddy-gender]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        onboardingBuddy.gender = btn.dataset.buddyGender;
+        renderOnboardingOnly();
+      });
+    });
+
+    const input = document.getElementById("buddyNameInput");
+    if (input) {
+      input.focus();
+      input.addEventListener("input", () => { onboardingBuddy.name = input.value; });
+    }
+
+    const create = document.getElementById("createBuddyBtn");
+    if (create) create.addEventListener("click", async () => {
+      const name = (document.getElementById("buddyNameInput")?.value || "").trim();
+      if (!name) {
+        const err = document.getElementById("buddyNameError");
+        if (err) err.textContent = "Please give your buddy a name 💛";
+        return;
+      }
+      onboardingBuddy.name = name.slice(0, 20);
+      saved.buddy = {
+        gender: onboardingBuddy.gender === "girl" ? "girl" : "boy",
+        name: onboardingBuddy.name,
+        createdAt: Date.now(),
+        version: 1
+      };
+      persist();
+      if (fbUser) {
+        cloudStatus = "syncing";
+        await pushToCloud();
+      }
+      session = newTask();
+      render();
+      setTimeout(() => notify(`Meet ${buddyName()}! ✨`, `${buddyName()} is ready to cheer you on.`), 250);
+    });
+  }
+
+
   // ---------- Main render ----------
   const TABS = [
     { id: "today", label: "Today", icon: "☀" },
@@ -1585,9 +2342,11 @@
 
   // ---------- Account / cloud sync ----------
   function renderAccount() {
+    const buddyPanel = renderBuddySettings();
     if (!CLOUD_CONFIGURED) {
       return `
-        <div class="panel">
+        ${buddyPanel}
+        <div class="panel" style="margin-top:14px;">
           <div class="panel-title">Cloud sync</div>
           <div class="note-text">Cloud sync isn't set up yet. Add your Firebase project's config to FIREBASE_CONFIG near the top of the script to enable accounts and cross-device sync. Instructions are in a comment right above it.</div>
         </div>
@@ -1595,7 +2354,8 @@
     }
     if (fbUser) {
       return `
-        <div class="panel">
+        ${buddyPanel}
+        <div class="panel" style="margin-top:14px;">
           <div class="panel-title">Signed in</div>
           <div class="note-text">${esc(fbUser.email || "Google account")}</div>
           <div class="mood-hint" style="margin:10px 0;">${cloudStatusLabel()}</div>
@@ -1604,7 +2364,8 @@
       `;
     }
     return `
-      <div class="panel">
+      ${buddyPanel}
+      <div class="panel" style="margin-top:14px;">
         <div class="panel-title">Sign in to sync across devices</div>
         ${cloudError ? `<div class="mood-hint" style="color:var(--rust); margin-bottom:8px;">${cloudError}</div>` : ""}
         <div class="form-row"><input id="authEmail" type="email" placeholder="Email" value="${esc(session.authEmail || "")}"></div>
@@ -1642,6 +2403,7 @@
       default:
         return `
           ${renderMoodCheck()}
+          ${renderBuddyCard()}
           ${renderMoodGuidance()}
           <div class="tab-grid">
             <div>${renderLamp()}${renderNote()}</div>
@@ -1660,6 +2422,12 @@
     opts = opts || {};
     lastRenderOpts = opts;
     const today = todayStr();
+
+    if (!saved || !saved.buddy || !saved.buddy.name || !saved.buddy.gender) {
+      onboardingBuddy = onboardingBuddy || { gender: "boy", name: "" };
+      renderOnboardingOnly();
+      return;
+    }
 
     app.innerHTML = `
       <div class="app-shell mood-${todaysMood() || "none"}">
@@ -1719,11 +2487,27 @@
 
     document.querySelectorAll(".mood-btn").forEach(btn => {
       btn.addEventListener("click", () => {
-        setTodaysMood(btn.dataset.mood);
+        const nextMood = btn.dataset.mood;
+        setTodaysMood(nextMood);
         session = newTask();
         rerender();
       });
     });
+
+    const buddyActionBtn = q("buddyActionBtn");
+    if (buddyActionBtn) buddyActionBtn.addEventListener("click", () => {
+      const mood = buddyMood();
+      if (mood === "rough") {
+        notify(`${buddyName()} says 💛`, "Just 2–3 minutes. That's enough for now.");
+      } else if (mood === "good") {
+        notify(`${buddyName()} says 🔥`, "You've got the energy. Start the task and ride the momentum.");
+      } else {
+        notify(`${buddyName()} says ✨`, "One task at a time. You've got this.");
+      }
+    });
+
+    const changeBuddyBtn = q("changeBuddyBtn");
+    if (changeBuddyBtn) changeBuddyBtn.addEventListener("click", beginBuddyChange);
 
     const changeMoodBtn = q("changeMoodBtn");
     if (changeMoodBtn) changeMoodBtn.addEventListener("click", () => {
@@ -1764,6 +2548,7 @@
         doneMap[id] = true;
         logCompletion(slot.text, parseInt(slot.minutes, 10) || 0);
         persist();
+        if (window.KPCompanion) window.KPCompanion.celebrate("task");
         rerender();
       });
     });
@@ -1971,7 +2756,7 @@
       if (resetBtn.dataset.confirming === "true") {
         try { localStorage.removeItem(KEY); } catch (e) {}
         const today = todayStr();
-        saved = { startDate: today, lastCompleted: null, streak: 0, bestStreak: 0, totalCompleted: 0, history: [], personalNote: "", customTasks: [], journal: {}, videoLinks: [], holidayDates: {} };
+        saved = { startDate: today, lastCompleted: null, streak: 0, bestStreak: 0, totalCompleted: 0, history: [], personalNote: "", customTasks: [], journal: {}, videoLinks: [], holidayDates: {}, buddy: null };
         session = newTask();
         persist();
         render({ quote: pick(quotePoolForMood(todaysMood())) });
@@ -2021,6 +2806,12 @@
     if (!incoming) return local;
     if (!local) return incoming;
     const merged = Object.assign({}, incoming, local); // local wins for any plain/unhandled field
+
+    // Buddy migration: never erase a buddy because an older cloud record
+    // does not yet contain the new buddy field.
+    if (local.buddy && local.buddy.name) merged.buddy = local.buddy;
+    else if (incoming.buddy && incoming.buddy.name) merged.buddy = incoming.buddy;
+    else merged.buddy = null;
 
     merged.startDate = (local.startDate && incoming.startDate)
       ? (local.startDate < incoming.startDate ? local.startDate : incoming.startDate)
@@ -2258,6 +3049,7 @@
         session.secondsLeft = 0;
         session.running = false;
         session.finished = true;
+    celebrateCompletion();
         notify("Time's up", `Nice work — "${session.text}" is done.`);
         completeTask();
       } else {
@@ -2279,6 +3071,7 @@
 
   function completeTask() {
     logCompletion(session.text, session.minutes);
+    if (window.KPCompanion) window.KPCompanion.celebrate("task");
     render({ quote: pick(quotePoolForMood(todaysMood())) });
   }
 
@@ -2303,6 +3096,7 @@
     if (!state.moodLog) state.moodLog = {};
     if (!state.scheduleLog) state.scheduleLog = {};
     if (!state.holidayDates) state.holidayDates = {};
+    if (!state.buddy) state.buddy = null;
 
     saved = state;
     deriveStatsFromHistory(saved);
@@ -2321,10 +3115,100 @@
     setInterval(runReminderChecks, 60000);
     initCloud();
   }
+  // Public read-only accessors for the floating companion.
+  window.KPGetBuddy = function () {
+    return (saved && saved.buddy) ? saved.buddy : null;
+  };
+  window.KPGetMood = function () {
+    try { return todaysMood ? todaysMood() : "okay"; } catch (e) { return "okay"; }
+  };
+  window.KPBuddySvg = buddySvg;
+
+  const _kpOriginalRender = render;
+  render = function() {
+    const result = _kpOriginalRender.apply(this, arguments);
+    if (activeTab === "today") setTimeout(animateNewTask, 0);
+    
+    return result;
+  };
+
 
   init();
 })();
+
+/* ===== Docked companion — small icon, tap to open, no roaming ===== */
+(function(){
+  const stage=document.getElementById("floatingBuddyStage");
+  const dock=document.getElementById("floatingBuddyDock");
+  const icon=document.getElementById("floatingBuddyIcon");
+  const dot=document.getElementById("floatingBuddyDot");
+  const panel=document.getElementById("floatingBuddyPanel");
+  if(!stage||!dock||!icon||!dot||!panel) return;
+
+  let open=false, pending=null;
+
+  function hasBuddy(){const b=window.KPGetBuddy&&window.KPGetBuddy();return !!(b&&b.name)}
+  function gender(){const b=window.KPGetBuddy&&window.KPGetBuddy();return b&&b.gender==="boy"?"boy":"girl"}
+  function name(){const b=window.KPGetBuddy&&window.KPGetBuddy();return b&&b.name?b.name:"Buddy"}
+  function mood(){try{return window.KPGetMood?window.KPGetMood():"okay"}catch(e){return"okay"}}
+
+  const MESSAGES={
+    welcome:n=>`Hi! I'm ${n}. Ready to make today count?`,
+    task:()=>`Nice work! One step done. ✨`,
+    rough:()=>`It's okay. Let's take one tiny step together.`,
+    many:()=>`We've got this. Just one task at a time.`,
+    all:()=>`You did it! Today is complete! 🎉`,
+    good:()=>`You're doing great. Keep going!`,
+    idle:()=>`I'm right here with you. 💛`
+  };
+
+  function renderIcon(){
+    if (window.KPBuddySvg) icon.innerHTML = window.KPBuddySvg(gender(), mood(), true);
+  }
+
+  function renderPanel(){
+    panel.innerHTML = `<div class="fb-name">${name()}</div><div class="fb-msg">${pending || MESSAGES.idle()}</div>`;
+  }
+
+  function setOpen(v){
+    open = v;
+    panel.classList.toggle("show", open);
+    if (open) { dot.classList.remove("show"); renderPanel(); }
+  }
+
+  // Real events (task done, streak risk, etc.) update the icon and leave a
+  // small dot — they never pop anything up on their own. Nothing shows
+  // until you actually tap the dock.
+  function event(kind){
+    if(!hasBuddy())return;
+    pending = (MESSAGES[kind]||MESSAGES.idle)(name());
+    renderIcon();
+    if (open) renderPanel();
+    else dot.classList.add("show");
+  }
+
+  window.KPCompanion={
+    celebrate(kind="task"){event(kind)},
+    welcome(){event("welcome")},
+    rough(){event("rough")},
+    many(){event("many")},
+    idle(){event("idle")}
+  };
+
+  dock.addEventListener("click", () => setOpen(!open));
+  document.addEventListener("click", (e) => {
+    if (open && !stage.contains(e.target)) setOpen(false);
+  });
+
+  function refresh(){
+    stage.style.display = hasBuddy() ? "flex" : "none";
+    renderIcon();
+  }
+
+  window.addEventListener("resize", refresh, {passive:true});
+  setInterval(refresh, 15000); // keeps the dock's mood/gender in sync as the day changes
+  setTimeout(() => { refresh(); if (hasBuddy()) window.KPCompanion.welcome(); }, 700);
+})();
 </script>
-</div></div>
 </body>
 </html>
