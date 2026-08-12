@@ -5710,5 +5710,287 @@ html,body{
 })();
 </script>
 
+
+<style id="functional-buddy-ui">
+#floatingBuddyStage{z-index:1200!important}
+#floatingBuddyCanvas{width:86px!important;height:106px!important;pointer-events:auto!important;cursor:pointer!important;transform-origin:50% 85%!important;filter:drop-shadow(0 8px 12px rgba(31,38,56,.12))!important}
+#floatingBuddyBubble{display:none!important}
+#kpBuddyPanel{position:fixed;right:18px;bottom:118px;z-index:1300;width:min(300px,calc(100vw - 36px));padding:14px;border:1px solid #e1e4ec;border-radius:18px;background:rgba(255,255,255,.98);color:#394256;box-shadow:0 18px 45px rgba(31,38,56,.18);backdrop-filter:blur(14px);display:none}
+#kpBuddyPanel.show{display:block;animation:kpBuddyIn .18s ease both}
+@keyframes kpBuddyIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.kp-buddy-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.kp-buddy-panel-title{font-weight:850;font-size:15px}
+.kp-buddy-panel-sub{font-size:11px;color:#7b8495;margin-top:2px}
+.kp-buddy-close{border:0;background:#f3f4f7;border-radius:999px;width:28px;height:28px;cursor:pointer;color:#596273}
+.kp-buddy-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kp-buddy-action{border:1px solid #e3e6ec;background:#f8f9fb;color:#3d4659;border-radius:12px;padding:11px 9px;text-align:left;font-weight:750;cursor:pointer;font:inherit;font-size:12px}
+.kp-buddy-action:hover{background:#eef1f6}
+.kp-buddy-action.primary{background:#7567d9;color:#fff;border-color:#7567d9}
+.kp-buddy-action small{display:block;font-size:10px;font-weight:600;opacity:.72;margin-top:3px}
+.kp-buddy-hide{margin-top:10px;width:100%;border:0;background:transparent;color:#8a93a3;font-size:10px;cursor:pointer;padding:5px}
+#kpBuddyRestore{position:fixed;right:12px;bottom:12px;z-index:1299;display:none;border:1px solid #e1e4ec;background:#fff;color:#596273;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:750;box-shadow:0 8px 20px rgba(31,38,56,.12);cursor:pointer}
+@media(max-width:700px){#floatingBuddyCanvas{width:68px!important;height:84px!important}#kpBuddyPanel{right:10px;bottom:94px;width:min(285px,calc(100vw - 20px))}}
+</style>
+
+<script id="functional-buddy-runtime">
+(function(){
+  const stage=document.getElementById("floatingBuddyStage"),canvas=document.getElementById("floatingBuddyCanvas");
+  if(!stage||!canvas)return;
+  const HIDE_KEY="kpFunctionalBuddyHiddenUntil";
+  const panel=document.createElement("div"); panel.id="kpBuddyPanel";
+  panel.innerHTML=`<div class="kp-buddy-panel-head"><div><div class="kp-buddy-panel-title">Buddy tools</div><div class="kp-buddy-panel-sub">Tap me when you want help — otherwise I stay quiet.</div></div><button class="kp-buddy-close" type="button" aria-label="Close">×</button></div><div class="kp-buddy-actions"><button class="kp-buddy-action primary" data-buddy-action="focus">⏱ Start focus<small>Use the current task</small></button><button class="kp-buddy-action" data-buddy-action="next">↗ Next task<small>Pick a fresh task</small></button><button class="kp-buddy-action" data-buddy-action="today">🏠 Open Today<small>Go to your dashboard</small></button><button class="kp-buddy-action" data-buddy-action="mood">🙂 Check mood<small>Change how today feels</small></button></div><button class="kp-buddy-hide" type="button" data-buddy-action="hide">Hide buddy for 24 hours</button>`;
+  document.body.appendChild(panel);
+  const restore=document.createElement("button"); restore.id="kpBuddyRestore"; restore.type="button"; restore.textContent="🔥 Show Buddy"; document.body.appendChild(restore);
+  function hidden(){try{return Number(localStorage.getItem(HIDE_KEY)||0)>Date.now()}catch(e){return false}}
+  function applyVisibility(){const h=hidden();stage.style.display=h?"none":"block";panel.classList.remove("show");restore.style.display=h?"block":"none"}
+  function openPanel(){if(!hidden())panel.classList.toggle("show")}
+  function clickIfExists(id){const el=document.getElementById(id);if(el){el.click();return true}return false}
+  function goTab(tab){const el=document.querySelector('.tab-btn[data-tab="'+tab+'"]');if(el)el.click()}
+  function run(action){
+    if(action==="focus"){if(!clickIfExists("startBtn")){goTab("today");setTimeout(()=>clickIfExists("startBtn"),120)}}
+    else if(action==="next"){clickIfExists("nextBtn")}
+    else if(action==="today"){goTab("today")}
+    else if(action==="mood"){goTab("today");setTimeout(()=>{const c=document.querySelector(".mood-card");if(c)c.scrollIntoView({behavior:"smooth",block:"center"})},120)}
+    else if(action==="hide"){try{localStorage.setItem(HIDE_KEY,String(Date.now()+86400000))}catch(e){}applyVisibility();return}
+    panel.classList.remove("show");
+  }
+  canvas.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();openPanel()});
+  panel.addEventListener("click",e=>{const b=e.target.closest("[data-buddy-action]");if(b)run(b.dataset.buddyAction);if(e.target.closest(".kp-buddy-close"))panel.classList.remove("show")});
+  restore.addEventListener("click",()=>{try{localStorage.removeItem(HIDE_KEY)}catch(e){}applyVisibility();openPanel()});
+  document.addEventListener("click",e=>{if(panel.classList.contains("show")&&!panel.contains(e.target)&&!canvas.contains(e.target))panel.classList.remove("show")});
+  if(window.KPCompanion){window.KPCompanion.welcome=function(){};window.KPCompanion.idle=function(){}}
+  applyVisibility();
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style id="kp-buddy-single-v7-ui">
+#kpOneBuddyPanel{position:fixed;z-index:10050;right:18px;bottom:112px;width:min(350px,calc(100vw - 28px));padding:15px;border:1px solid #e2e7e3;border-radius:18px;background:#fff;box-shadow:0 18px 48px rgba(31,38,56,.18);display:none}
+#kpOneBuddyPanel.show{display:block}
+.kpob-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.kpob-name{font-size:17px;font-weight:900}.kpob-sub{font-size:11px;color:#7a857e;margin-top:3px}
+.kpob-close{border:0;border-radius:50%;width:28px;height:28px;background:#f0f2f0;cursor:pointer;font-weight:900}
+.kpob-bubble{margin-top:11px;padding:11px;border-radius:13px;background:#f2f4f2;font-size:12px;line-height:1.5}
+.kpob-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+.kpob-btn{border:1px solid #e0e5e1;background:#fff;border-radius:10px;padding:9px 6px;font-size:11px;font-weight:800;cursor:pointer;color:#34413a}
+.kpob-btn.primary{background:#718b78;color:#fff;border-color:#718b78}
+.kpob-input{width:100%;box-sizing:border-box;margin-top:9px;border:1px solid #dfe4e0;border-radius:9px;padding:8px;font-size:11px}
+#kpBuddyEdgeBubble{position:fixed;z-index:10080;right:0;top:50%;transform:translateY(-50%);width:9px;height:72px;border:0;border-radius:10px 0 0 10px;background:#718b78;box-shadow:0 6px 18px rgba(31,38,56,.18);cursor:pointer;display:none}
+#kpBuddyEdgeBubble:hover{width:13px;height:80px}
+#floatingBuddyCanvas{cursor:grab;touch-action:none}
+#floatingBuddyCanvas:active{cursor:grabbing}
+</style>
+
+
+<script id="kp-buddy-single-v7-runtime">
+(function(){
+  const POS="kpBuddySinglePosV7", HIDE="kpBuddySingleHiddenV7", PROFILE="kpBuddySingleProfileV7";
+  const canvas=document.getElementById("floatingBuddyCanvas");
+  const stage=document.getElementById("floatingBuddyStage");
+  if(!canvas||!stage)return;
+
+  // Stop legacy companion behavior from moving or reacting to the canvas.
+  try{cancelAnimationFrame(window.buddyAnim)}catch(e){}
+  if(window.buddyTimer){clearInterval(window.buddyTimer);window.buddyTimer=null}
+  if(window.buddyIdleTimer){clearTimeout(window.buddyIdleTimer);window.buddyIdleTimer=null}
+  canvas.onclick=null;
+  canvas.onpointerdown=null; canvas.onpointermove=null; canvas.onpointerup=null;
+
+  const esc=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const getProfile=()=>{try{return JSON.parse(localStorage.getItem(PROFILE)||"{}")}catch(e){return{}}};
+  const saveProfile=p=>{try{localStorage.setItem(PROFILE,JSON.stringify(p))}catch(e){}};
+  const buddyName=()=>{try{const b=window.KPGetBuddy&&window.KPGetBuddy();return b&&b.name?b.name:"Buddy"}catch(e){return"Buddy"}};
+  const userName=()=>getProfile().userName||"there";
+
+  function buddyVoiceGender(){
+    const p=getProfile();
+    return p.voiceGender==="boy" ? "boy" : "girl";
+  }
+
+  function pickBuddyVoice(gender){
+    const voices=window.speechSynthesis?.getVoices?.()||[];
+    if(!voices.length)return null;
+    const english=voices.filter(v=>/^en(?:[-_]|$)/i.test(v.lang||""));
+    const pool=english.length?english:voices;
+    const girlHints=["samantha","karen","victoria","zira","susan","ava","aria","jenny","libby","hazel","siri","female"];
+    const boyHints=["daniel","david","mark","george","fred","guy","arthur","tom","alex","male"];
+    const hints=gender==="boy"?boyHints:girlHints;
+    let best=pool[0], bestScore=-1;
+    pool.forEach(v=>{
+      const n=(v.name+" "+v.voiceURI).toLowerCase();
+      let score=0;
+      hints.forEach((h,i)=>{if(n.includes(h))score+=35-i});
+      if(/natural|neural|premium|enhanced|online/i.test(n))score+=5;
+      if(/^en-(US|GB|AU)/i.test(v.lang||""))score+=2;
+      if(score>bestScore){best=v;bestScore=score;}
+    });
+    return best;
+  }
+
+  function speak(t){
+    const p=getProfile();
+    if(p.voice===false||!window.speechSynthesis)return;
+    const gender=buddyVoiceGender();
+    const speakNow=()=>{
+      try{
+        speechSynthesis.cancel();
+        const u=new SpeechSynthesisUtterance(t);
+        const v=pickBuddyVoice(gender);
+        if(v)u.voice=v;
+        u.rate=gender==="girl" ? 1.03 : 1.00;
+        u.pitch=gender==="girl" ? 1.42 : 1.26;
+        u.volume=.82;
+        speechSynthesis.speak(u);
+      }catch(e){}
+    };
+    if((speechSynthesis.getVoices?.()||[]).length) speakNow();
+    else setTimeout(speakNow,300);
+  }
+  function say(t){
+    let b=document.getElementById("kpSingleSpeech");
+    if(!b){
+      b=document.createElement("div");b.id="kpSingleSpeech";
+      b.style.cssText="position:fixed;z-index:10090;max-width:280px;padding:9px 12px;border-radius:13px;background:#fff;border:1px solid #e1e6e2;box-shadow:0 8px 24px rgba(31,38,56,.16);font-size:12px;line-height:1.45;display:none";
+      document.body.appendChild(b);
+    }
+    const r=canvas.getBoundingClientRect();
+    b.style.left=Math.max(10,Math.min(innerWidth-300,r.left-130))+"px";
+    b.style.top=Math.max(55,r.top-55)+"px";
+    b.textContent=t;b.style.display="block";
+    clearTimeout(window.kpSingleSpeechTimer);
+    window.kpSingleSpeechTimer=setTimeout(()=>b.style.display="none",5000);
+    speak(t);
+  }
+
+  const panel=document.createElement("div");panel.id="kpOneBuddyPanel";document.body.appendChild(panel);
+  const edge=document.createElement("button");edge.id="kpBuddyEdgeBubble";edge.title="Open buddy";document.body.appendChild(edge);
+
+  function render(){
+    const p=getProfile();
+    panel.innerHTML=`<div class="kpob-head"><div><div class="kpob-name">🔥 ${esc(buddyName())}</div><div class="kpob-sub">Your buddy · You: ${esc(p.userName||"not set")}</div></div><button class="kpob-close" data-close>×</button></div>
+    <div class="kpob-bubble">Hi${p.userName?", "+esc(p.userName):""}. I'm here when you need me.</div>
+    <div class="kpob-grid">
+      <button class="kpob-btn primary" data-a="rough">😞 Bad mood</button>
+      <button class="kpob-btn" data-a="memory">🧠 Saved help</button>
+      <button class="kpob-btn" data-a="focus">⏱ Start focus</button>
+      <button class="kpob-btn" data-a="five">🪜 5-minute step</button>
+      <button class="kpob-btn" data-a="quote">💬 Quote</button>
+      <button class="kpob-btn" data-a="video">🎬 Video</button>
+    </div>
+    <input class="kpob-input" id="kpSingleUserName" value="${esc(p.userName||"")}" placeholder="Your name">
+    <div class="kpob-grid"><button class="kpob-btn" data-a="save">Save my name</button><button class="kpob-btn" data-a="voice">${p.voice===false?"🔇 Voice off":"🔊 Voice on"}</button>
+    </div>
+    <div style="font-size:11px;font-weight:850;margin-top:10px">Buddy voice</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px">
+      <button class="kpob-btn" data-voice="girl" style="${(p.voiceGender||"girl")==="girl"?"background:#718b78!important;color:#fff!important;":""}">👧 Girl</button>
+      <button class="kpob-btn" data-voice="boy" style="${(p.voiceGender||"girl")==="boy"?"background:#718b78!important;color:#fff!important;":""}">👦 Boy</button></div>`;
+  }
+  function open(){render();panel.classList.add("show")}
+  function hide(){panel.classList.remove("show");stage.style.display="none";edge.style.display="block";localStorage.setItem(HIDE,"1")}
+  function restore(){stage.style.display="block";edge.style.display="none";localStorage.removeItem(HIDE);applyPosition()}
+  edge.onclick=restore;
+
+  function memory(mood){
+    if(window.KPBuddyMemory?.setMood&&mood)window.KPBuddyMemory.setMood(mood);
+    if(window.KPBuddyMemory?.open)window.KPBuddyMemory.open();
+    else if(window.KPBuddyMemory?.suggest)window.KPBuddyMemory.suggest();
+  }
+  function action(a){
+    const n=userName();
+    if(a==="rough"){say(`It's okay, ${n}. We don't need a perfect day. Let's take one small step.`);memory("rough")}
+    if(a==="memory"){say(`I can bring back something you chose to save, ${n}.`);memory()}
+    if(a==="quote"){say(`Let's bring back something useful, ${n}.`);memory()}
+    if(a==="video"){say(`Here's something you saved for yourself, ${n}.`);memory()}
+    if(a==="focus"){document.querySelector('[data-tab="today"]')?.click();setTimeout(()=>document.getElementById("startBtn")?.click(),150);say(`Ready, ${n}? One focused session.`)}
+    if(a==="five"){document.querySelector('[data-tab="today"]')?.click();say(`Forget the whole list for now, ${n}. Just five minutes.`)}
+    if(a==="save"){const v=document.getElementById("kpSingleUserName")?.value.trim();if(v){let p=getProfile();p.userName=v;saveProfile(p);render();say(`Got it, ${v}. I'm ${buddyName()}.`)}}
+    if(a==="voice"){let p=getProfile();p.voice=p.voice===false;saveProfile(p);render();if(p.voice!==false)say(`I'll speak when you interact with me.`)}
+  }
+  panel.addEventListener("click",e=>{
+    if(e.target.closest("[data-close]"))panel.classList.remove("show");
+    const a=e.target.closest("[data-a]");if(a)action(a.dataset.a);
+    const v=e.target.closest("[data-voice]");
+    if(v){
+      const p=getProfile();
+      p.voiceGender=v.dataset.voice;
+      p.voice=true;
+      saveProfile(p);
+      render();
+      say(v.dataset.voice==="girl"?"Okay, I'll use the girl voice.":"Okay, I'll use the boy voice.");
+    }
+  });
+
+  let dragging=false,moved=false,sx=0,sy=0,ox=0,oy=0,edgeTimer=null,edgeTriggered=false;
+  function savePosition(){const r=canvas.getBoundingClientRect();try{localStorage.setItem(POS,JSON.stringify({x:r.left,y:r.top}))}catch(e){}}
+  function applyPosition(){
+    try{const p=JSON.parse(localStorage.getItem(POS)||"null");if(p)canvas.style.transform=`translate3d(${p.x}px,${p.y}px,0)`}catch(e){}
+  }
+  function cancelEdge(){if(edgeTimer){clearTimeout(edgeTimer);edgeTimer=null}}
+  function startEdge(){
+    cancelEdge();
+    edgeTimer=setTimeout(()=>{if(dragging){edgeTriggered=true;hide();dragging=false}},1100);
+  }
+
+  canvas.addEventListener("pointerdown",e=>{
+    dragging=true;moved=false;edgeTriggered=false;
+    const r=canvas.getBoundingClientRect();sx=e.clientX;sy=e.clientY;ox=r.left;oy=r.top;
+    canvas.setPointerCapture?.(e.pointerId);
+  });
+  canvas.addEventListener("pointermove",e=>{
+    if(!dragging)return;
+    const dx=e.clientX-sx,dy=e.clientY-sy;
+    if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;
+    const r=canvas.getBoundingClientRect(),w=Math.max(70,r.width),h=Math.max(70,r.height);
+    const x=Math.max(4,Math.min(innerWidth-w-4,ox+dx)),y=Math.max(55,Math.min(innerHeight-h-4,oy+dy));
+    canvas.style.transform=`translate3d(${x}px,${y}px,0)`;
+    if(innerWidth-(x+w)<=12)startEdge();else cancelEdge();
+  });
+  function end(e){
+    cancelEdge();
+    if(dragging&&!edgeTriggered)savePosition();
+    dragging=false;
+  }
+  canvas.addEventListener("pointerup",end);
+  canvas.addEventListener("pointercancel",end);
+  canvas.addEventListener("click",()=>{if(moved){moved=false;return}open()});
+
+  window.KPCompanion={
+    welcome(){say(`Good morning, ${userName()}. I'm ${buddyName()}. I'm here when you need me.`)},
+    celebrate(kind="task"){say(kind==="all"?`You finished today's plan, ${userName()}. Take the win.`:`Nice work, ${userName()}. One step is done.`)},
+    rough(){say(`It's okay, ${userName()}. Let's make the next step small.`)},
+    many(){say(`One thing at a time, ${userName()}. You don't have to do everything now.`)},
+    idle(){say(`I'm here, ${userName()}. Tap me when you want help.`)}
+  };
+
+  setTimeout(()=>{
+    if(localStorage.getItem(HIDE)==="1"){stage.style.display="none";edge.style.display="block"}
+    else{stage.style.display="block";edge.style.display="none";applyPosition()}
+  },500);
+})();
+</script>
+
 </body>
 </html>
