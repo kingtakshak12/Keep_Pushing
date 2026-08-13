@@ -5519,27 +5519,44 @@ html,body{
 
   async function acquireTaskLock() {
     // Web Locks gives true same-origin cross-tab mutual exclusion.
+    // Important: resolve as soon as the lock is ACQUIRED, not when it is
+    // eventually released. Awaiting navigator.locks.request() directly here
+    // would deadlock Start Task because its callback intentionally holds the
+    // lock for the entire focus session.
     if (navigator.locks && navigator.locks.request) {
-      let acquired = false;
-      let release;
-      const hold = new Promise(resolve => { release = resolve; });
-
       try {
-        await navigator.locks.request(
-          "keep-pushing-active-task",
-          { mode: "exclusive", ifAvailable: true },
-          async lock => {
-            if (!lock) return;
-            acquired = true;
-            taskLockRelease = release;
-            broadcastTaskLock("acquired");
-            await hold;
-          }
-        );
-        return acquired;
+        const acquired = await new Promise(resolve => {
+          let settled = false;
+
+          navigator.locks.request(
+            "keep-pushing-active-task",
+            { mode: "exclusive", ifAvailable: true },
+            async lock => {
+              if (!lock) {
+                settled = true;
+                resolve(false);
+                return;
+              }
+
+              let release;
+              const hold = new Promise(r => { release = r; });
+              taskLockRelease = release;
+              broadcastTaskLock("acquired");
+
+              // Let startTimer continue immediately while this callback
+              // remains alive in the background holding the browser lock.
+              settled = true;
+              resolve(true);
+              await hold;
+            }
+          ).catch(() => {
+            if (!settled) resolve(null);
+          });
+        });
+
+        if (acquired !== null) return acquired;
       } catch (e) {
         // Fall through to the localStorage compatibility lock.
-        acquired = false;
       }
     }
 
@@ -5585,13 +5602,12 @@ html,body{
 
     // First coordinate with the signed-in account across devices.
     const cloudLock = await acquireCloudTaskLock();
-    if (!cloudLock.ok) {
-      if (cloudLock.unavailable) {
-        notify("Could not start safely", "Cloud task protection is temporarily unavailable. Please check your connection and try again.");
-      } else {
-        notify("Task already running", cloudTaskLockMessage(cloudLock));
-      }
+    if (!cloudLock.ok && !cloudLock.unavailable) {
+      notify("Task already running", cloudTaskLockMessage(cloudLock));
       return;
+    }
+    if (cloudLock.unavailable) {
+      showToast("Offline protection", "Starting locally. Cross-device task protection is temporarily unavailable.");
     }
 
     // Then protect against same-browser tabs/windows too.
