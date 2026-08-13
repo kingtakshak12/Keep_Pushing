@@ -2121,8 +2121,17 @@ html,body{
 
 
 <style id="kp-round-schedule-clock-style">
-.app-header{position:relative!important}
-.kp-round-clock-wrap{position:absolute;top:14px;right:18px;z-index:35}
+.app-header{
+  position:relative!important;
+  z-index:3000!important;
+  overflow:visible!important;
+}
+.kp-round-clock-wrap{
+  position:absolute;
+  top:14px;
+  right:18px;
+  z-index:3100;
+}
 .kp-round-clock{
   width:104px;height:104px;border-radius:50%;border:2px solid var(--amber);
   background:linear-gradient(145deg,var(--bg-panel),var(--bg-panel-2));
@@ -2135,9 +2144,18 @@ html,body{
 .kp-round-clock-task{width:82px;margin-top:5px;font-size:9px;line-height:1.15;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kp-round-clock-next{margin-top:3px;font-size:8px;line-height:1.1;color:var(--teal);font-weight:900}
 .kp-round-clock-pop{
-  position:absolute;top:114px;right:0;width:min(290px,calc(100vw - 28px));
-  padding:15px;border:1px solid var(--line);border-radius:16px;background:var(--bg-panel);
-  box-shadow:0 15px 38px rgba(45,61,54,.16);text-align:left;display:none
+  position:absolute;
+  top:114px;
+  right:0;
+  z-index:3200;
+  width:min(290px,calc(100vw - 28px));
+  padding:15px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:var(--bg-panel);
+  box-shadow:0 15px 38px rgba(45,61,54,.16);
+  text-align:left;
+  display:none
 }
 .kp-round-clock-pop.show{display:block}
 .kp-clock-pop-kicker{font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint)}
