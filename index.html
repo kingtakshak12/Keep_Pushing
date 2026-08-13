@@ -2163,29 +2163,6 @@ html,body{
 }
 </style>
 
-
-<style id="kp-buddy-symbol-hub-style">
-.buddy-card{position:relative}
-.kp-buddy-hub-btn{
-  position:absolute;top:12px;right:12px;width:42px;height:42px;border-radius:50%;
-  padding:0!important;display:grid;place-items:center;border:1px solid var(--line)!important;
-  background:var(--bg-panel-2)!important;color:var(--ink-light)!important;
-  font-size:19px!important;box-shadow:none!important;cursor:pointer
-}
-.kp-buddy-hub-btn:hover{transform:translateY(-1px)}
-.kp-buddy-hub{
-  display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)
-}
-.kp-buddy-hub.show{display:block}
-.kp-buddy-hub .mood-card{margin:0 0 10px!important}
-.kp-buddy-hub .panel{margin:0 0 10px!important;box-shadow:none!important}
-.kp-staying-card{
-  padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--bg-panel-2)
-}
-.kp-staying-title{font-size:12px;font-weight:900;color:var(--ink-light);margin-bottom:5px}
-.kp-staying-copy{font-size:12px;line-height:1.45;color:var(--ink-soft)}
-</style>
-
 </head>
 <body>
 <div class="frame-outer"><div class="frame-box">
@@ -3140,7 +3117,6 @@ html,body{
     if (remaining <= 0) return;
 
     remoteCloudTaskOwner = active.owner;
-    lastRemoteActiveSignature = `${active.owner}|${active.endAt}|${active.text || ""}`;
 
     if (timerHandle) {
       clearInterval(timerHandle);
@@ -3183,7 +3159,6 @@ html,body{
   function stopMirroredCloudTask() {
     if (!remoteCloudTaskOwner) return;
     remoteCloudTaskOwner = null;
-    lastRemoteActiveSignature = "";
     if (timerHandle) {
       clearInterval(timerHandle);
       timerHandle = null;
@@ -3337,10 +3312,11 @@ html,body{
         tx.set(ref, patch, { merge: true });
       });
     } catch (e) {
-      console.warn("Transaction task-lock heartbeat stopped; live task sync continues", e);
+      console.warn("Task lock heartbeat stopped; active task sync remains authoritative", e);
       cloudTaskLockOwned = false;
       clearInterval(cloudTaskLockHeartbeat);
       cloudTaskLockHeartbeat = null;
+
       if (session && session.running && !session.remoteRunning) {
         showToast("Sync protection changed", "Your task is still running. Cross-device start protection is temporarily reduced.");
       }
@@ -4562,7 +4538,6 @@ html,body{
     const stage = buddyStage();
     return `
       <div class="buddy-card mood-${mood}">
-        <button class="kp-buddy-hub-btn" id="kpBuddyHubBtn" type="button" aria-label="Open Buddy check-in" aria-expanded="false">🫶</button>
         <div class="buddy-card-inner">
           <div class="buddy-character-stage buddy-stage-${stage}">${buddySvg(buddyGender(), mood)}</div>
           <div class="buddy-copy">
@@ -4572,14 +4547,6 @@ html,body{
             <div class="buddy-message">${esc(buddyMessage(mood, buddyName()))}</div>
             ${stage > 0 ? `<div class="buddy-stage-note">${esc(buddyName())} has grown into ${BUDDY_STAGE_LABEL[stage]} from your ${saved.streak}-day streak 🔥</div>` : ""}
             <button id="buddyActionBtn" class="buddy-action">${cfg.button}</button>
-          </div>
-        </div>
-        <div class="kp-buddy-hub" id="kpBuddyHub">
-          ${renderMoodCheck()}
-          ${renderWeeklyRecap()}
-          <div class="kp-staying-card">
-            <div class="kp-staying-title">🤝 I'm staying with you</div>
-            <div class="kp-staying-copy">${esc(buddyMessage(mood, buddyName()))}</div>
           </div>
         </div>
       </div>
@@ -4822,8 +4789,31 @@ html,body{
   }
 
 
-  function scheduleTaskKey(slot) {
+  function legacyScheduleTaskKey(slot) {
     return `${String(slot && (slot.label || "")).trim().toLowerCase()}|${String(slot && (slot.text || "")).trim().toLowerCase()}`;
+  }
+
+  function scheduleTaskKey(slot) {
+    if (slot && slot.id) return `slot:${slot.id}`;
+    return `legacy:${legacyScheduleTaskKey(slot)}`;
+  }
+
+  function getOrMigrateScheduleTaskStreak(slot) {
+    saved.scheduleTaskStreaks = saved.scheduleTaskStreaks || {};
+    const key = scheduleTaskKey(slot);
+    let current = saved.scheduleTaskStreaks[key];
+    if (current) return current;
+
+    const legacyKey = legacyScheduleTaskKey(slot);
+    if (saved.scheduleTaskStreaks[legacyKey]) {
+      current = saved.scheduleTaskStreaks[legacyKey];
+      saved.scheduleTaskStreaks[key] = current;
+      delete saved.scheduleTaskStreaks[legacyKey];
+      persist();
+      return current;
+    }
+
+    return { count: 0, best: 0, lastDate: "" };
   }
 
   function updateScheduleTaskStreak(slot) {
@@ -4832,7 +4822,7 @@ html,body{
     const key = scheduleTaskKey(slot);
     const today = todayStr();
     const yesterday = yesterdayStr();
-    const current = saved.scheduleTaskStreaks[key] || { count: 0, best: 0, lastDate: "" };
+    const current = getOrMigrateScheduleTaskStreak(slot);
     if (current.lastDate === today) return current.count || 0;
     current.count = current.lastDate === yesterday ? (current.count || 0) + 1 : 1;
     current.best = Math.max(current.best || 0, current.count);
@@ -4843,8 +4833,7 @@ html,body{
 
   function getScheduleTaskStreak(slot) {
     if (!slot) return { count: 0, best: 0, lastDate: "" };
-    saved.scheduleTaskStreaks = saved.scheduleTaskStreaks || {};
-    return saved.scheduleTaskStreaks[scheduleTaskKey(slot)] || { count: 0, best: 0, lastDate: "" };
+    return getOrMigrateScheduleTaskStreak(slot);
   }
 
   function currentScheduleClockState() {
@@ -4960,6 +4949,8 @@ html,body{
         return renderAccount();
       default:
         return `
+          ${renderMoodCheck()}
+          ${renderWeeklyRecap()}
           ${renderBuddyCard()}
           ${renderMoodGuidance()}
           <div class="tab-grid">
@@ -5024,15 +5015,6 @@ html,body{
     const q = (id) => document.getElementById(id);
     const rerender = () => render({ quote: opts.quote });
     wireRoundScheduleClock();
-
-    const kpBuddyHubBtn = q("kpBuddyHubBtn");
-    const kpBuddyHub = q("kpBuddyHub");
-    if (kpBuddyHubBtn && kpBuddyHub) {
-      kpBuddyHubBtn.addEventListener("click", () => {
-        const open = kpBuddyHub.classList.toggle("show");
-        kpBuddyHubBtn.setAttribute("aria-expanded", open ? "true" : "false");
-      });
-    }
 
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -5206,20 +5188,7 @@ html,body{
     });
 
     const startBtn = q("startBtn");
-    if (startBtn) startBtn.addEventListener("click", async () => {
-      if (startTimerBusy) return;
-      startBtn.disabled = true;
-      const oldText = startBtn.textContent;
-      startBtn.textContent = "Starting…";
-      try { await startTimer(); }
-      finally {
-        const liveBtn = q("startBtn");
-        if (liveBtn && !session.running) {
-          liveBtn.disabled = false;
-          liveBtn.textContent = oldText;
-        }
-      }
-    });
+    if (startBtn) startBtn.addEventListener("click", startTimer);
 
     const skipBtn = q("skipBtn");
     if (skipBtn) skipBtn.addEventListener("click", () => {
@@ -5852,12 +5821,8 @@ html,body{
     } catch (err) {}
   });
 
-  let startTimerBusy = false;
-
   async function startTimer() {
-    if (session.running || startTimerBusy) return;
-    startTimerBusy = true;
-    try {
+    if (session.running) return;
 
     // First coordinate with the signed-in account across devices.
     const cloudLock = await acquireCloudTaskLock();
@@ -5932,9 +5897,6 @@ html,body{
         if (timerEl) timerEl.textContent = fmtTime(remaining);
       }
     }, 1000);
-    } finally {
-      startTimerBusy = false;
-    }
   }
 
   function logCompletion(text, minutes) {
