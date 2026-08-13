@@ -63,6 +63,7 @@
     .frame-box { max-width: 1040px; }
   }
 
+</style>
 <style id="buddy-system-styles">
   /* ===== Motivation Buddy system ===== */
   .app-shell {
@@ -375,7 +376,6 @@
     .app-shell .mood-card, .app-shell .task-card, .app-shell .quote-card,
     .app-shell .note-card { transition: none !important; }
   }
-</style>
 </style>
 <style id="buddy-existing-account-fix">
   .buddy-cloud-note{margin-top:10px;font-size:12px;line-height:1.45;color:rgba(255,255,255,.62)}
@@ -2104,6 +2104,65 @@ html,body{
 }
 </style>
 
+
+<style id="smart-schedule-v8">
+.schedule-smart-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--bg-panel)}
+.schedule-progress-pill{flex:0 0 auto;padding:7px 10px;border-radius:999px;background:var(--bg-panel-2);color:var(--ink-soft);font-size:11px;font-weight:800}
+.sched-badge{display:inline-flex;align-items:center;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:800;white-space:nowrap}
+.sched-badge.static{background:#eef1f8;color:#526079}.sched-badge.priority{background:#fff0e9;color:#c9572f}.sched-badge.flexible{background:#edf6f3;color:#4d7b6f}
+.sched-block.sched-priority{border-left-color:#e56e47!important;box-shadow:0 10px 28px rgba(229,110,71,.10)!important}.sched-block.sched-static{border-left-color:#667085!important}
+.sched-field{width:48%;display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:800;color:var(--ink-soft)}
+.sched-field .note-input{width:100%;min-height:auto;padding:8px 9px}
+.sched-time-preview{margin:8px 0 2px;font-size:12px;font-weight:800;color:var(--ink-soft)}
+.sched-options-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;padding:9px 10px;border-radius:12px;background:var(--bg-panel-2);font-size:11px;color:var(--ink-soft)}
+.sched-options-row label{display:flex;align-items:center;gap:4px}.sched-options-row input{accent-color:var(--amber)}
+@media(max-width:520px){.schedule-smart-header{flex-direction:column}.sched-field{width:48%}.sched-options-row{flex-direction:column;gap:8px}}
+</style>
+
+
+<style id="kp-round-schedule-clock-style">
+.app-header{position:relative!important}
+.kp-round-clock-wrap{position:absolute;top:14px;right:18px;z-index:35}
+.kp-round-clock{
+  width:104px;height:104px;border-radius:50%;border:2px solid var(--amber);
+  background:linear-gradient(145deg,var(--bg-panel),var(--bg-panel-2));
+  box-shadow:0 8px 24px rgba(45,61,54,.10),inset 0 0 0 6px color-mix(in srgb,var(--amber) 7%,transparent);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:9px;text-align:center;cursor:pointer;color:var(--ink-light);
+}
+.kp-round-clock:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(45,61,54,.13),inset 0 0 0 6px color-mix(in srgb,var(--amber) 9%,transparent)!important}
+.kp-round-clock-time{font-size:19px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.kp-round-clock-task{width:82px;margin-top:5px;font-size:9px;line-height:1.15;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kp-round-clock-next{margin-top:3px;font-size:8px;line-height:1.1;color:var(--teal);font-weight:900}
+.kp-round-clock-pop{
+  position:absolute;top:114px;right:0;width:min(290px,calc(100vw - 28px));
+  padding:15px;border:1px solid var(--line);border-radius:16px;background:var(--bg-panel);
+  box-shadow:0 15px 38px rgba(45,61,54,.16);text-align:left;display:none
+}
+.kp-round-clock-pop.show{display:block}
+.kp-clock-pop-kicker{font-size:10px;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint)}
+.kp-clock-pop-task{font-size:16px;font-weight:900;color:var(--ink-light);margin-top:4px}
+.kp-clock-pop-time{font-size:11px;color:var(--ink-soft);margin-top:3px}
+.kp-clock-pop-streak{margin-top:11px;padding:10px 11px;border-radius:12px;background:var(--bg-panel-2);font-size:13px;font-weight:850;color:var(--ink-light)}
+.kp-clock-pop-streak strong{color:var(--teal)}
+.kp-clock-pop-next{font-size:11px;color:var(--ink-soft);margin-top:8px;line-height:1.4}
+@media(max-width:719px){
+  .kp-round-clock-wrap{top:10px;right:12px}
+  .kp-round-clock{width:88px;height:88px;padding:7px}
+  .kp-round-clock-time{font-size:16px}
+  .kp-round-clock-task{width:68px;font-size:8px}
+  .kp-round-clock-next{font-size:7px}
+  .kp-round-clock-pop{top:98px}
+  .app-header .eyebrow,.app-header .title{padding-right:92px}
+}
+@media(max-width:390px){
+  .kp-round-clock{width:80px;height:80px}
+  .kp-round-clock-time{font-size:15px}
+  .kp-round-clock-task{width:62px}
+  .app-header .eyebrow,.app-header .title{padding-right:84px}
+}
+</style>
+
 </head>
 <body>
 <div class="frame-outer"><div class="frame-box">
@@ -2112,7 +2171,7 @@ html,body{
 <div id="toastLayer" aria-live="polite"></div>
 <div id="kpCelebration" aria-hidden="true"></div>
 <div id="buddyMoodBurst" aria-hidden="true"></div>
-<div id="floatingBuddyStage" aria-hidden="true"><canvas id="floatingBuddyCanvas"></canvas><div id="floatingBuddyBubble"></div></div>
+<div id="floatingBuddyStage"><canvas id="floatingBuddyCanvas" role="button" tabindex="0" aria-label="Open motivation buddy tools"></canvas><div id="floatingBuddyBubble" aria-live="polite"></div></div>
 <style id="enhanced-animations">
   /* === Keep Pushing — enhanced motion layer === */
   @keyframes kpFadeUp {
@@ -2855,6 +2914,7 @@ html,body{
   const taskLockChannel = ("BroadcastChannel" in window) ? new BroadcastChannel("keep-pushing-task-lock") : null;
   let activeTab = "today";
   let scheduleView = null;
+  let scheduleEditMode = false;
   let mobileMenuOpen = false;
   let lastRenderOpts = {};
 
@@ -3486,38 +3546,180 @@ html,body{
     `;
   }
 
-  // ---------- Whole-day schedule (weekday / weekend / holiday plans, any number of slots) ----------
+  // ---------- Fully populated editable schedule: 3:00 AM–10:30 PM ----------
+  const DAY_START_MIN = 3 * 60;
+  const DAY_END_MIN = 22 * 60 + 30;
+
   function makeSlot(overrides) {
     return Object.assign({
       id: "s" + Math.random().toString(36).slice(2, 9),
-      label: "", time: "", text: "", minutes: "", remindAt: ""
+      label: "Task", start: "03:00", time: "", text: "Flexible task", minutes: 60, remindAt: "",
+      locked: false, priority: false
     }, overrides || {});
   }
 
+  // This default has no uncovered time between 3:00 AM and 10:30 PM.
+  // Users can change any block later with the Edit schedule button.
+  const FULL_DAY_TEMPLATE = [
+    { label: "Start the day", start: "03:00", text: "🌅 Wake up, water, wash, and get settled", minutes: 30, locked: true },
+    { label: "Deep Focus 1", start: "03:30", text: "🧠 Most important work while the morning is quiet", minutes: 90, priority: true },
+    { label: "Reset", start: "05:00", text: "☕ Water, stretch, and a short break", minutes: 20 },
+    { label: "Deep Focus 2", start: "05:20", text: "📚 Study, project work, or your second important task", minutes: 70 },
+    { label: "Move", start: "06:30", text: "🏃 Walk, exercise, mobility, or stretching", minutes: 30 },
+    { label: "Get ready", start: "07:00", text: "🚿 Shower and get ready", minutes: 30 },
+    { label: "Breakfast", start: "07:30", text: "🍳 Breakfast and fuel for the day", minutes: 30, locked: true },
+    { label: "Top 1", start: "08:00", text: "🎯 Confirm today's Top 1 and next action", minutes: 15, priority: true },
+    { label: "Focus Block 3", start: "08:15", text: "💻 Continue the highest-value task", minutes: 45, priority: true },
+    { label: "Break", start: "09:00", text: "☕ Step away, drink water, and reset", minutes: 15 },
+    { label: "Focus Block 4", start: "09:15", text: "📚 Study or focused work", minutes: 45 },
+    { label: "Refresh", start: "10:00", text: "😌 Walk, snack, water, and reset", minutes: 20 },
+    { label: "Work / study", start: "10:20", text: "💻 Continue priority work", minutes: 70 },
+    { label: "Small tasks", start: "11:30", text: "🧹 Admin, messages, cleaning, and quick responsibilities", minutes: 30 },
+    { label: "Lunch", start: "12:00", text: "🍽️ Lunch and a proper break", minutes: 60, locked: true },
+    { label: "Recharge", start: "13:00", text: "😴 Rest, quiet time, or a short nap", minutes: 30 },
+    { label: "Focus Block 5", start: "13:30", text: "🎯 Top 1 or second priority", minutes: 60 },
+    { label: "Break", start: "14:30", text: "☕ Reset before the afternoon", minutes: 30 },
+    { label: "Learning", start: "15:00", text: "📖 Lighter work, reading, practice, or projects", minutes: 60 },
+    { label: "Body", start: "16:00", text: "🏋️ Gym, sport, walk, or physical training", minutes: 60 },
+    { label: "Recovery", start: "17:00", text: "🚿 Shower and recover", minutes: 30 },
+    { label: "Free time", start: "17:30", text: "🎮 Games, videos, hobbies, or guilt-free downtime", minutes: 60 },
+    { label: "Dinner", start: "18:30", text: "🍽️ Dinner and relax", minutes: 45, locked: true },
+    { label: "People", start: "19:15", text: "👨‍👩‍👦 Friends, family, prayer, or personal time", minutes: 45 },
+    { label: "Close loops", start: "20:00", text: "✅ Finish small unfinished tasks", minutes: 30 },
+    { label: "Daily review", start: "20:30", text: "📊 Review what actually got done", minutes: 15 },
+    { label: "Tomorrow's Top 1", start: "20:45", text: "🎯 Set tomorrow's Top 1", minutes: 15 },
+    { label: "Wind down", start: "21:00", text: "🎵 Relax, read, or use calm entertainment", minutes: 60 },
+    { label: "Night routine", start: "22:00", text: "📵 Phone down, prepare for sleep, and close the day", minutes: 30, locked: true }
+  ];
+
+  const ROUGH_DAY_TEMPLATE = [
+    { label: "Gentle start", start: "03:00", text: "💧 Get up, water, wash, and take the morning slowly", minutes: 60, locked: true },
+    { label: "Restful focus", start: "04:00", text: "🎯 Choose one important thing and make the first step tiny", minutes: 60, priority: true },
+    { label: "Easy morning", start: "05:00", text: "😌 Light activity, music, reading, or quiet time", minutes: 90 },
+    { label: "Move", start: "06:30", text: "🚶 Go outside, stretch, or walk gently", minutes: 30 },
+    { label: "Wash + reset", start: "07:00", text: "🚿 Shower, get dressed, and reset", minutes: 30 },
+    { label: "Breakfast", start: "07:30", text: "🍳 Eat something and hydrate", minutes: 30, locked: true },
+    { label: "Tiny win", start: "08:00", text: "⏱️ Do the important thing for at least 5 minutes", minutes: 60, priority: true },
+    { label: "Recovery break", start: "09:00", text: "☕ Rest without guilt", minutes: 60 },
+    { label: "Basic responsibility", start: "10:00", text: "🧹 Complete one useful everyday responsibility", minutes: 60 },
+    { label: "Low-pressure time", start: "11:00", text: "📖 Light work, simple learning, or quiet hobbies", minutes: 60 },
+    { label: "Lunch", start: "12:00", text: "🍽️ Lunch and a proper break", minutes: 60, locked: true },
+    { label: "Recharge", start: "13:00", text: "😴 Rest or take quiet time", minutes: 90 },
+    { label: "Small progress", start: "14:30", text: "✅ One small useful task if you have the energy", minutes: 30 },
+    { label: "Easy afternoon", start: "15:00", text: "🎮 Hobbies, gentle learning, or guilt-free free time", minutes: 120 },
+    { label: "Freshen up", start: "17:00", text: "🚿 Wash, stretch, or take a short walk", minutes: 30 },
+    { label: "Free time", start: "17:30", text: "🎮 Rest, play, watch something, or talk to someone", minutes: 60 },
+    { label: "Dinner", start: "18:30", text: "🍽️ Dinner", minutes: 45, locked: true },
+    { label: "People / calm time", start: "19:15", text: "👨‍👩‍👦 Family, friends, prayer, or calm personal time", minutes: 45 },
+    { label: "Close one loop", start: "20:00", text: "✅ Finish one small thing and call that enough", minutes: 30 },
+    { label: "Gentle review", start: "20:30", text: "📊 Notice what you did manage today", minutes: 15 },
+    { label: "Tomorrow's one thing", start: "20:45", text: "🎯 Pick one simple priority for tomorrow", minutes: 15 },
+    { label: "Wind down", start: "21:00", text: "🎵 Relax, read, or use calm entertainment", minutes: 60 },
+    { label: "Night routine", start: "22:00", text: "📵 Phone down and prepare for sleep", minutes: 30, locked: true }
+  ];
+
+  const cloneTemplate = (tpl) => tpl.map(item => Object.assign({}, item));
   const DEFAULT_PLAN_TEMPLATES = {
-    weekday: [
-      { label: "Early Morning", time: "6–9 AM" },
-      { label: "Morning", time: "9 AM–12 PM" },
-      { label: "Midday", time: "12–2 PM" },
-      { label: "Afternoon", time: "2–5 PM" },
-      { label: "Evening", time: "5–8 PM" },
-      { label: "Night", time: "8–10 PM" }
-    ],
-    weekend: [
-      { label: "Early Morning", time: "7–10 AM" },
-      { label: "Morning", time: "10 AM–1 PM" },
-      { label: "Afternoon", time: "1–5 PM" },
-      { label: "Evening", time: "5–9 PM" }
-    ],
-    holiday: [
-      { label: "Slow start", time: "Morning" },
-      { label: "Something for you", time: "Midday" },
-      { label: "One small task", time: "Afternoon" },
-      { label: "Rest & recharge", time: "Evening" }
-    ]
+    weekday: cloneTemplate(FULL_DAY_TEMPLATE),
+    weekend: cloneTemplate(FULL_DAY_TEMPLATE),
+    holiday: cloneTemplate(FULL_DAY_TEMPLATE),
+    rough: cloneTemplate(ROUGH_DAY_TEMPLATE)
   };
 
-  const PLAN_LABELS = { weekday: "Weekday", weekend: "Weekend", holiday: "Holiday" };
+  const PLAN_LABELS = { weekday: "Weekday", weekend: "Weekend", holiday: "Holiday", rough: "Rough day" };
+
+  function parseClock(value) {
+    const m = String(value || "").match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    const total = Number(m[1]) * 60 + Number(m[2]);
+    return Number.isFinite(total) ? total : null;
+  }
+
+  function fmtClock(total) {
+    total = Math.max(0, Math.min(1439, Math.round(total)));
+    const h24 = Math.floor(total / 60), mins = total % 60;
+    const ap = h24 >= 12 ? "PM" : "AM";
+    const h = h24 % 12 || 12;
+    return `${h}:${String(mins).padStart(2, "0")} ${ap}`;
+  }
+
+  function slotStart(slot) {
+    const direct = parseClock(slot.start);
+    if (direct != null) return direct;
+    const old = String(slot.time || "").match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);
+    if (!old) return DAY_START_MIN;
+    let h = Number(old[1]), m = Number(old[2] || 0);
+    const ap = (old[3] || "").toUpperCase();
+    if (ap === "PM" && h < 12) h += 12;
+    if (ap === "AM" && h === 12) h = 0;
+    return h * 60 + m;
+  }
+
+  function slotDuration(slot) {
+    const n = parseInt(slot.minutes, 10);
+    return Math.max(15, Math.min(360, Number.isFinite(n) ? n : 60));
+  }
+
+  function normalizedStart(slot) {
+    return Math.max(DAY_START_MIN, Math.min(DAY_END_MIN - 15, slotStart(slot)));
+  }
+
+  function updateSlotTimeLabel(slot) {
+    const st = normalizedStart(slot), en = Math.min(DAY_END_MIN, st + slotDuration(slot));
+    slot.start = `${String(Math.floor(st / 60)).padStart(2,"0")}:${String(st % 60).padStart(2,"0")}`;
+    slot.time = `${fmtClock(st)}–${fmtClock(en)}`;
+  }
+
+  function overlaps(aStart, aEnd, bStart, bEnd) {
+    return aStart < bEnd && aEnd > bStart;
+  }
+
+  function reshufflePlan(type, priorityId) {
+    const plan = getSchedulePlan(type);
+    const priority = plan.find(s => s.id === priorityId);
+    if (!priority) return { moved: 0, overflow: 0 };
+
+    priority.priority = true;
+    updateSlotTimeLabel(priority);
+
+    const anchors = plan
+      .filter(s => s.locked || s.id === priorityId)
+      .map(s => ({ id: s.id, start: normalizedStart(s), end: Math.min(DAY_END_MIN, normalizedStart(s) + slotDuration(s)) }))
+      .sort((a,b) => a.start - b.start);
+
+    const flex = plan
+      .filter(s => !s.locked && s.id !== priorityId)
+      .map((s, index) => ({ s, index, desired: normalizedStart(s) }))
+      .sort((a,b) => a.desired - b.desired || a.index - b.index);
+
+    const placed = anchors.slice();
+    let moved = 0, overflow = 0;
+    for (const item of flex) {
+      const dur = slotDuration(item.s);
+      let candidate = Math.max(DAY_START_MIN, item.desired);
+      let guard = 0;
+      while (guard++ < 100) {
+        const hit = placed
+          .filter(x => overlaps(candidate, candidate + dur, x.start, x.end))
+          .sort((a,b) => a.start - b.start)[0];
+        if (!hit) break;
+        candidate = hit.end;
+      }
+      if (candidate + dur > DAY_END_MIN) {
+        overflow++;
+        candidate = Math.max(DAY_START_MIN, DAY_END_MIN - dur);
+        const lateHit = placed.filter(x => overlaps(candidate, candidate + dur, x.start, x.end)).sort((a,b)=>b.end-a.end)[0];
+        if (lateHit) candidate = Math.max(DAY_START_MIN, lateHit.start - dur);
+      }
+      if (candidate !== item.desired) moved++;
+      item.s.start = `${String(Math.floor(candidate/60)).padStart(2,"0")}:${String(candidate%60).padStart(2,"0")}`;
+      updateSlotTimeLabel(item.s);
+      placed.push({ id:item.s.id, start:candidate, end:Math.min(DAY_END_MIN,candidate+dur) });
+    }
+
+    plan.sort((a,b) => normalizedStart(a) - normalizedStart(b));
+    return { moved, overflow };
+  }
 
   function dayType(d) {
     const iso = localIso(d);
@@ -3526,12 +3728,27 @@ html,body{
     return (day === 0 || day === 6) ? "weekend" : "weekday";
   }
 
+  function todayScheduleType() {
+    return todaysMood() === "rough" ? "rough" : dayType(new Date());
+  }
+
   function getSchedulePlan(type) {
     saved.schedulePlan = saved.schedulePlan || {};
     const existing = saved.schedulePlan[type];
-    if (Array.isArray(existing)) return existing;
+    if (Array.isArray(existing)) {
+      existing.forEach((slot) => {
+        if (typeof slot.locked !== "boolean") slot.locked = false;
+        if (typeof slot.priority !== "boolean") slot.priority = false;
+        if (!slot.start) {
+          const inferred = Math.max(DAY_START_MIN, Math.min(DAY_END_MIN - 15, slotStart(slot)));
+          slot.start = `${String(Math.floor(inferred/60)).padStart(2,"0")}:${String(inferred%60).padStart(2,"0")}`;
+        }
+        if (!slot.minutes) slot.minutes = 60;
+        updateSlotTimeLabel(slot);
+      });
+      return existing;
+    }
 
-    // migrate the old fixed-key format if present, otherwise seed sensible defaults
     let slots;
     if (existing && typeof existing === "object") {
       slots = Object.keys(existing).map(k => makeSlot({
@@ -3540,9 +3757,18 @@ html,body{
     } else {
       slots = (DEFAULT_PLAN_TEMPLATES[type] || DEFAULT_PLAN_TEMPLATES.weekday).map(s => makeSlot(s));
     }
+    slots.forEach(updateSlotTimeLabel);
     saved.schedulePlan[type] = slots;
     persist();
     return slots;
+  }
+
+  function resetScheduleTemplate(type) {
+    const template = DEFAULT_PLAN_TEMPLATES[type] || DEFAULT_PLAN_TEMPLATES.weekday;
+    saved.schedulePlan = saved.schedulePlan || {};
+    saved.schedulePlan[type] = template.map(s => makeSlot(s));
+    saved.schedulePlan[type].forEach(updateSlotTimeLabel);
+    persist();
   }
 
   function getTodayDoneMap() {
@@ -3561,66 +3787,81 @@ html,body{
     const today = todayStr();
     if (saved.holidayDates[today]) delete saved.holidayDates[today];
     else saved.holidayDates[today] = true;
+    scheduleView = null;
     persist();
   }
 
   function renderSchedule() {
-    const actualType = dayType(new Date());
+    const actualType = todayScheduleType();
     const viewType = scheduleView || actualType;
     const isToday = viewType === actualType;
-    const plan = getSchedulePlan(viewType);
+    const plan = getSchedulePlan(viewType).slice().sort((a,b) => normalizedStart(a)-normalizedStart(b));
     const doneMap = isToday ? getTodayDoneMap() : null;
     const doneCount = isToday ? plan.filter(s => doneMap[s.id]).length : 0;
+    const roughActive = todaysMood() === "rough";
 
     return `
+      <div class="schedule-smart-header">
+        <div>
+          <div class="panel-title">${viewType === "rough" ? "😞 Rough-day plan · 3:00 AM → 10:30 PM" : "3:00 AM → 10:30 PM · Full day plan"}</div>
+          <div class="schedule-intro" style="text-align:left;margin:4px 0 0;">Your day is already filled in. 🔒 Static tasks stay fixed. ⚡ Priority tasks can reshuffle flexible tasks around them.</div>
+          ${roughActive ? `<div class="schedule-intro" style="text-align:left;margin:6px 0 0;">💛 Rough mode is active, so Keep Pushing is showing the lighter version. Change your mood to bring the normal plan back.</div>` : ``}
+        </div>
+        <div class="schedule-progress-pill">${doneCount}/${plan.length} done</div>
+      </div>
       <div class="sched-toggle">
-        ${["weekday", "weekend", "holiday"].map(t => `
+        ${["weekday", "weekend", "holiday", "rough"].map(t => `
           <button class="sched-toggle-btn ${viewType === t ? "active" : ""}" data-view="${t}">${PLAN_LABELS[t]}</button>
         `).join("")}
       </div>
-      <div class="schedule-intro">
-        ${isToday
-          ? `Today's plan (${PLAN_LABELS[viewType].toLowerCase()}). ${doneCount}/${plan.length} done so far.`
-          : `Editing your ${PLAN_LABELS[viewType].toLowerCase()} plan ahead of time — this doesn't apply until a ${PLAN_LABELS[viewType].toLowerCase()} day.`}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+        <button id="editScheduleBtn" data-view="${viewType}">${scheduleEditMode ? "✓ Finish editing" : "✏️ Edit schedule"}</button>
+        ${scheduleEditMode ? `<button id="resetScheduleBtn" data-view="${viewType}" class="link-btn">↺ Reset to 3:00 AM default</button>` : ``}
+        ${viewType !== "rough" ? `<button id="toggleHolidayBtn" class="link-btn">${isTodayMarkedHoliday() ? "↩ Unmark today as a holiday" : "🎉 Mark today as a holiday"}</button>` : ``}
       </div>
-      <button id="toggleHolidayBtn" class="link-btn" style="margin-bottom:14px;">
-        ${isTodayMarkedHoliday() ? "↩ Unmark today as a holiday" : "🎉 Mark today as a holiday"}
-      </button>
       ${plan.map(slot => {
         const done = isToday && doneMap[slot.id];
-        if (done) {
-          return `
-            <div class="sched-block sched-done">
-              <div class="sched-time">${esc(slot.label || "Slot")} <span class="sched-timerange">${esc(slot.time)}</span></div>
-              <div class="sched-task">${esc(slot.text)}</div>
-              <div class="done-msg">✓ Done</div>
-            </div>
-          `;
-        }
+        const badge = slot.locked ? `<span class="sched-badge static">🔒 Static</span>` : slot.priority ? `<span class="sched-badge priority">⚡ Priority</span>` : `<span class="sched-badge flexible">↔ Flexible</span>`;
+        if (!scheduleEditMode) return `
+          <div class="sched-block ${done ? "sched-done" : ""} ${slot.priority ? "sched-priority" : ""} ${slot.locked ? "sched-static" : ""}">
+            <div class="sched-time-row"><div class="sched-time">${esc(slot.time)}</div>${badge}</div>
+            <div class="sched-task">${esc(slot.label || "Task")}</div>
+            <div class="sched-mins">${esc(slot.text || "Planned activity")} · ${slotDuration(slot)} min</div>
+            ${done ? `<div class="done-msg">✓ Done</div>` : (isToday ? `<button class="sched-done-btn" data-id="${slot.id}" data-view="${viewType}">Mark done</button>` : ``)}
+          </div>`;
+        if (done) return `
+          <div class="sched-block sched-done">
+            <div class="sched-time-row"><div class="sched-time">${esc(slot.label || "Task")} <span class="sched-timerange">${esc(slot.time)}</span></div>${badge}</div>
+            <div class="sched-task">${esc(slot.text || "Planned activity")}</div>
+            <div class="done-msg">✓ Done</div>
+          </div>`;
         return `
-          <div class="sched-block">
+          <div class="sched-block ${slot.priority ? "sched-priority" : ""} ${slot.locked ? "sched-static" : ""}">
             <div class="sched-time-row">
-              <input type="text" class="note-input sched-label-input" data-id="${slot.id}" data-view="${viewType}" placeholder="Label" value="${esc(slot.label || "")}" style="min-height:auto; padding:6px 8px; width:48%;" />
-              <input type="text" class="note-input sched-time-input" data-id="${slot.id}" data-view="${viewType}" placeholder="Time" value="${esc(slot.time || "")}" style="min-height:auto; padding:6px 8px; width:48%; text-align:right;" />
+              <input type="text" class="note-input sched-label-input" data-id="${slot.id}" data-view="${viewType}" value="${esc(slot.label || "Task")}" style="min-height:auto;padding:7px 9px;width:48%;" />
+              <div style="display:flex;align-items:center;justify-content:flex-end;width:48%;">${badge}</div>
             </div>
-            <input type="text" class="note-input sched-text-input" data-id="${slot.id}" data-view="${viewType}" placeholder="What will you do?" value="${esc(slot.text || "")}" style="min-height:auto; padding:9px 10px; margin-top:8px; margin-bottom:6px;" />
+            <input type="text" class="note-input sched-text-input" data-id="${slot.id}" data-view="${viewType}" value="${esc(slot.text || "Planned activity")}" style="min-height:auto;padding:10px 11px;margin-top:8px;margin-bottom:7px;" />
             <div class="sched-time-row">
-              <input type="number" class="note-input sched-mins-input" data-id="${slot.id}" data-view="${viewType}" placeholder="Minutes (optional)" value="${esc(slot.minutes || "")}" style="min-height:auto; padding:9px 10px; width:48%;" />
-              <label style="width:48%; display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-soft);">
-                Remind at
-                <input type="time" class="note-input sched-remind-input" data-id="${slot.id}" data-view="${viewType}" value="${slot.remindAt || ""}" style="min-height:auto; padding:6px 8px; flex:1;" />
-              </label>
+              <label class="sched-field">Start<input type="time" min="03:00" max="22:15" class="note-input sched-start-input" data-id="${slot.id}" data-view="${viewType}" value="${esc(slot.start || "03:00")}" /></label>
+              <label class="sched-field">Minutes<input type="number" min="15" max="360" step="5" class="note-input sched-mins-input" data-id="${slot.id}" data-view="${viewType}" value="${esc(slot.minutes || 60)}" /></label>
             </div>
-            <div style="height:8px;"></div>
-            <div style="display:flex; gap:8px;">
-              <button class="sched-save-btn" data-id="${slot.id}" data-view="${viewType}">Save</button>
-              <button class="sched-remove-btn link-btn" data-id="${slot.id}" data-view="${viewType}" style="width:auto; color:var(--rust); flex:0 0 auto;">Remove</button>
+            <div class="sched-time-preview">${esc(slot.time)}</div>
+            <div class="sched-options-row">
+              <label><input type="checkbox" class="sched-static-input" data-id="${slot.id}" data-view="${viewType}" ${slot.locked ? "checked" : ""}> 🔒 Static — never move</label>
+              <label><input type="checkbox" class="sched-priority-input" data-id="${slot.id}" data-view="${viewType}" ${slot.priority ? "checked" : ""} ${slot.locked ? "disabled" : ""}> ⚡ Priority — reshuffle around me</label>
             </div>
-            ${isToday && slot.text ? `<button class="sched-done-btn" data-id="${slot.id}" style="margin-top:8px;">Mark done</button>` : ""}
-          </div>
-        `;
+            <div class="sched-time-row" style="margin-top:8px;">
+              <label class="sched-field" style="width:100%;">Reminder (optional)<input type="time" class="note-input sched-remind-input" data-id="${slot.id}" data-view="${viewType}" value="${slot.remindAt || ""}" /></label>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:9px;">
+              <button class="sched-save-btn" data-id="${slot.id}" data-view="${viewType}">${slot.priority ? "Save & reshuffle" : "Save"}</button>
+              <button class="sched-remove-btn link-btn" data-id="${slot.id}" data-view="${viewType}" style="width:auto;color:var(--rust);flex:0 0 auto;">Remove</button>
+            </div>
+            ${isToday ? `<button class="sched-done-btn" data-id="${slot.id}" data-view="${viewType}" style="margin-top:8px;">Mark done</button>` : ""}
+          </div>`;
       }).join("")}
-      <button id="addSlotBtn" data-view="${viewType}" style="margin-top:4px;">+ Add time slot</button>
+      ${scheduleEditMode ? `<button id="addSlotBtn" data-view="${viewType}" style="margin-top:4px;">+ Add flexible task</button>` : ``}
     `;
   }
 
@@ -4345,6 +4586,122 @@ html,body{
     `;
   }
 
+
+  function scheduleTaskKey(slot) {
+    return `${String(slot && (slot.label || "")).trim().toLowerCase()}|${String(slot && (slot.text || "")).trim().toLowerCase()}`;
+  }
+
+  function updateScheduleTaskStreak(slot) {
+    if (!slot) return 0;
+    saved.scheduleTaskStreaks = saved.scheduleTaskStreaks || {};
+    const key = scheduleTaskKey(slot);
+    const today = todayStr();
+    const yesterday = yesterdayStr();
+    const current = saved.scheduleTaskStreaks[key] || { count: 0, best: 0, lastDate: "" };
+    if (current.lastDate === today) return current.count || 0;
+    current.count = current.lastDate === yesterday ? (current.count || 0) + 1 : 1;
+    current.best = Math.max(current.best || 0, current.count);
+    current.lastDate = today;
+    saved.scheduleTaskStreaks[key] = current;
+    return current.count;
+  }
+
+  function getScheduleTaskStreak(slot) {
+    if (!slot) return { count: 0, best: 0, lastDate: "" };
+    saved.scheduleTaskStreaks = saved.scheduleTaskStreaks || {};
+    return saved.scheduleTaskStreaks[scheduleTaskKey(slot)] || { count: 0, best: 0, lastDate: "" };
+  }
+
+  function currentScheduleClockState() {
+    const now = new Date();
+    const minute = now.getHours() * 60 + now.getMinutes();
+    const h12 = now.getHours() % 12 || 12;
+    const clock = `${h12}:${String(now.getMinutes()).padStart(2, "0")}`;
+    const period = now.getHours() >= 12 ? "PM" : "AM";
+    const type = todayScheduleType();
+    const plan = getSchedulePlan(type).slice().sort((a,b) => normalizedStart(a) - normalizedStart(b));
+    const current = plan.find(s => minute >= normalizedStart(s) && minute < normalizedStart(s) + slotDuration(s));
+    const next = plan.find(s => normalizedStart(s) > minute);
+    if (current) {
+      const left = Math.max(0, normalizedStart(current) + slotDuration(current) - minute);
+      return { clock, period, current, next, minutes: left, mode: "current" };
+    }
+    if (next) {
+      return { clock, period, current: null, next, minutes: Math.max(0, normalizedStart(next) - minute), mode: "waiting" };
+    }
+    return { clock, period, current: null, next: null, minutes: 0, mode: "done" };
+  }
+
+  function renderRoundScheduleClock() {
+    const s = currentScheduleClockState();
+    const shown = s.current || s.next;
+    const taskName = shown ? (shown.label || shown.text || "Scheduled task") : "Day complete";
+    const tiny = s.mode === "current" ? `${s.minutes} min → next` : s.mode === "waiting" ? `${s.minutes} min → start` : "All done";
+    const streak = shown ? getScheduleTaskStreak(shown) : { count: 0, best: 0, lastDate: "" };
+    const todayDone = shown && streak.lastDate === todayStr();
+    const nextGoal = todayDone ? streak.count : (streak.count || 0) + 1;
+    const encouragement = !shown
+      ? `Nice work — today's scheduled day is complete.`
+      : todayDone
+        ? `Great job — <strong>${streak.count}-day streak</strong> for this task.`
+        : streak.count > 0
+          ? `🔥 <strong>${streak.count}-day streak</strong> · complete it today for day ${nextGoal}.`
+          : `Complete this task today to start a <strong>1-day streak</strong>.`;
+    const timeLabel = shown ? shown.time : "";
+    const nextLine = s.current && s.next
+      ? `Next: ${esc(s.next.label || s.next.text || "Next task")} in ${s.minutes} min.`
+      : s.mode === "waiting" && s.next
+        ? `${esc(s.next.label || s.next.text || "Next task")} starts in ${s.minutes} min.`
+        : `No more scheduled tasks today.`;
+
+    return `
+      <div class="kp-round-clock-wrap" id="kpRoundClockWrap">
+        <button class="kp-round-clock" id="kpRoundClockBtn" type="button" aria-expanded="false" aria-label="Open current schedule task">
+          <div class="kp-round-clock-time" data-kp-clock-time>${esc(s.clock)} <span style="font-size:8px">${esc(s.period)}</span></div>
+          <div class="kp-round-clock-task" data-kp-clock-task>${esc(taskName)}</div>
+          <div class="kp-round-clock-next" data-kp-clock-next>${esc(tiny)}</div>
+        </button>
+        <div class="kp-round-clock-pop" id="kpRoundClockPop">
+          <div class="kp-clock-pop-kicker">${s.current ? "Current schedule task" : s.next ? "Next schedule task" : "Schedule"}</div>
+          <div class="kp-clock-pop-task" data-kp-pop-task>${esc(taskName)}</div>
+          <div class="kp-clock-pop-time" data-kp-pop-time>${esc(timeLabel)}</div>
+          <div class="kp-clock-pop-streak" data-kp-pop-streak>${encouragement}</div>
+          <div class="kp-clock-pop-next" data-kp-pop-next>${nextLine}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function refreshRoundScheduleClock() {
+    const wrap = document.getElementById("kpRoundClockWrap");
+    if (!wrap || activeTab !== "today") return;
+    const wasOpen = document.getElementById("kpRoundClockPop")?.classList.contains("show");
+    const temp = document.createElement("div");
+    temp.innerHTML = renderRoundScheduleClock().trim();
+    const replacement = temp.firstElementChild;
+    wrap.replaceWith(replacement);
+    wireRoundScheduleClock();
+    if (wasOpen) {
+      const pop = document.getElementById("kpRoundClockPop");
+      const btn = document.getElementById("kpRoundClockBtn");
+      if (pop) pop.classList.add("show");
+      if (btn) btn.setAttribute("aria-expanded", "true");
+    }
+  }
+
+  function wireRoundScheduleClock() {
+    const btn = document.getElementById("kpRoundClockBtn");
+    const pop = document.getElementById("kpRoundClockPop");
+    if (!btn || !pop) return;
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = pop.classList.toggle("show");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    pop.addEventListener("click", e => e.stopPropagation());
+  }
+
+
   function renderTabContent(opts) {
     switch (activeTab) {
       case "calendar":
@@ -4408,6 +4765,7 @@ html,body{
         <div class="menu-backdrop ${mobileMenuOpen ? "open" : ""}" id="menuBackdrop"></div>
         <div class="app-body">
           <div class="app-header">
+            ${activeTab === "today" ? renderRoundScheduleClock() : ""}
             <button class="menu-toggle" id="menuToggleBtn">
               <span class="menu-toggle-icon">${mobileMenuOpen ? "✕" : "☰"}</span>
               <span class="menu-toggle-label">${TABS.find(t => t.id === activeTab)?.label || "Menu"}</span>
@@ -4432,6 +4790,7 @@ html,body{
   function wireEvents(opts) {
     const q = (id) => document.getElementById(id);
     const rerender = () => render({ quote: opts.quote });
+    wireRoundScheduleClock();
 
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -4440,6 +4799,13 @@ html,body{
         rerender();
       });
     });
+
+    document.addEventListener("click", () => {
+      const pop = document.getElementById("kpRoundClockPop");
+      const btn = document.getElementById("kpRoundClockBtn");
+      if (pop) pop.classList.remove("show");
+      if (btn) btn.setAttribute("aria-expanded", "false");
+    }, { once: true });
 
     const menuToggleBtn = q("menuToggleBtn");
     if (menuToggleBtn) menuToggleBtn.addEventListener("click", () => {
@@ -4456,6 +4822,7 @@ html,body{
       btn.addEventListener("click", () => {
         const nextMood = btn.dataset.mood;
         setTodaysMood(nextMood);
+        scheduleView = null;
         session = newTask();
         rerender();
       });
@@ -4480,6 +4847,7 @@ html,body{
     if (changeMoodBtn) changeMoodBtn.addEventListener("click", () => {
       saved.moodLog = saved.moodLog || {};
       delete saved.moodLog[todayStr()];
+      scheduleView = null;
       try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
       rerender();
     });
@@ -4505,22 +4873,37 @@ html,body{
       });
     });
 
+    const editScheduleBtn = q("editScheduleBtn");
+    if (editScheduleBtn) editScheduleBtn.addEventListener("click", () => {
+      scheduleEditMode = !scheduleEditMode;
+      rerender();
+    });
+
     const toggleHolidayBtn = q("toggleHolidayBtn");
     if (toggleHolidayBtn) toggleHolidayBtn.addEventListener("click", () => {
       toggleTodayHoliday();
       rerender();
     });
 
+    const resetScheduleBtn = q("resetScheduleBtn");
+    if (resetScheduleBtn) resetScheduleBtn.addEventListener("click", () => {
+      resetScheduleTemplate(resetScheduleBtn.dataset.view);
+      showToast("Schedule reset", `${PLAN_LABELS[resetScheduleBtn.dataset.view]} restored to the full 3:00 AM default.`);
+      rerender();
+    });
+
     document.querySelectorAll(".sched-done-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const id = btn.dataset.id;
-        const actualType = dayType(new Date());
-        const plan = getSchedulePlan(actualType);
+        const view = btn.dataset.view || todayScheduleType();
+        const plan = getSchedulePlan(view);
         const slot = plan.find(s => s.id === id);
         if (!slot) return;
         const doneMap = getTodayDoneMap();
         doneMap[id] = true;
+        const taskStreak = updateScheduleTaskStreak(slot);
         logCompletion(slot.text, parseInt(slot.minutes, 10) || 0);
+        if (taskStreak > 1) showToast("🔥 Task streak", `Great job — ${slot.label || slot.text} is now a ${taskStreak}-day streak.`);
         persist();
         if (window.KPCompanion) window.KPCompanion.celebrate("task");
         rerender();
@@ -4535,17 +4918,26 @@ html,body{
         const slot = plan.find(s => s.id === id);
         if (!slot) return;
         const labelInput = document.querySelector(`.sched-label-input[data-id="${id}"][data-view="${view}"]`);
-        const timeInput = document.querySelector(`.sched-time-input[data-id="${id}"][data-view="${view}"]`);
+        const startInput = document.querySelector(`.sched-start-input[data-id="${id}"][data-view="${view}"]`);
         const textInput = document.querySelector(`.sched-text-input[data-id="${id}"][data-view="${view}"]`);
         const minsInput = document.querySelector(`.sched-mins-input[data-id="${id}"][data-view="${view}"]`);
         const remindInput = document.querySelector(`.sched-remind-input[data-id="${id}"][data-view="${view}"]`);
-        slot.label = labelInput ? labelInput.value.trim() : slot.label;
-        slot.time = timeInput ? timeInput.value.trim() : slot.time;
-        slot.text = textInput ? textInput.value.trim() : "";
-        slot.minutes = minsInput ? minsInput.value.trim() : "";
+        const staticInput = document.querySelector(`.sched-static-input[data-id="${id}"][data-view="${view}"]`);
+        const priorityInput = document.querySelector(`.sched-priority-input[data-id="${id}"][data-view="${view}"]`);
+        slot.label = labelInput ? (labelInput.value.trim() || "Task") : (slot.label || "Task");
+        slot.start = startInput ? startInput.value : slot.start;
+        slot.text = textInput ? (textInput.value.trim() || "Planned activity") : (slot.text || "Planned activity");
+        slot.minutes = minsInput ? (parseInt(minsInput.value, 10) || 60) : 60;
         slot.remindAt = remindInput ? remindInput.value : "";
+        slot.locked = !!(staticInput && staticInput.checked);
+        slot.priority = !slot.locked && !!(priorityInput && priorityInput.checked);
+        updateSlotTimeLabel(slot);
+        let reshuffleResult = null;
+        if (slot.priority) reshuffleResult = reshufflePlan(view, id);
         if (slot.remindAt) getNotifyFlags().slotsFired[slot.id] = false;
         persist();
+        if (reshuffleResult && reshuffleResult.moved) showToast("⚡ Schedule reshuffled", `${reshuffleResult.moved} flexible task${reshuffleResult.moved === 1 ? "" : "s"} moved around your priority task.`);
+        if (reshuffleResult && reshuffleResult.overflow) showToast("Day is tight", `${reshuffleResult.overflow} task${reshuffleResult.overflow === 1 ? "" : "s"} had to be packed near the end of the 6:30 AM–10:30 PM window.`);
         rerender();
       });
     });
@@ -4566,7 +4958,7 @@ html,body{
     if (addSlotBtn) addSlotBtn.addEventListener("click", () => {
       const view = addSlotBtn.dataset.view;
       const plan = getSchedulePlan(view);
-      plan.push(makeSlot({ label: "New slot" }));
+      plan.push(makeSlot({ label: "New task", start: "21:00", text: "Flexible activity — edit this to what you want to do", minutes: 30 }));
       persist();
       rerender();
     });
@@ -5290,12 +5682,19 @@ html,body{
     if (!state.videoLinks) state.videoLinks = [];
     if (!state.moodLog) state.moodLog = {};
     if (!state.scheduleLog) state.scheduleLog = {};
+    if (!state.scheduleTaskStreaks) state.scheduleTaskStreaks = {};
     if (!state.holidayDates) state.holidayDates = {};
     if (typeof state.streakGrace !== "number") state.streakGrace = 0;
     if (!state.streakGraceLog) state.streakGraceLog = [];
     if (typeof state.streakGraceAwardedAt !== "number") state.streakGraceAwardedAt = 0;
     if (typeof state.lastRecapShownWeek !== "string") state.lastRecapShownWeek = "";
     if (!state.buddy) state.buddy = null;
+    // One-time migration to the new fully populated 3:00 AM schedule.
+    // This guarantees the app does not keep an older 6:30 AM template in localStorage.
+    if (state.scheduleTemplateVersion !== "3am-full-v1") {
+      state.schedulePlan = {};
+      state.scheduleTemplateVersion = "3am-full-v1";
+    }
 
     saved = state;
     deriveStatsFromHistory(saved);
@@ -5335,6 +5734,7 @@ html,body{
 
 
   init();
+  setInterval(refreshRoundScheduleClock, 10000);
 })();
 
 /* ===== Calm, useful Daily Companion ===== */
@@ -5433,7 +5833,9 @@ html,body{
 
   /* Tapping the companion gives a useful, context-aware check-in. */
   canvas.addEventListener("click",function(){
-    if(!hasBuddy()) return;
+    // V7 provides the single interactive Buddy panel. Keep this legacy
+    // reaction only as a fallback if that layer is unavailable.
+    if(window.KPBuddySingleMode || !hasBuddy()) return;
     const m=mood();
     if(m==="rough") event("rough");
     else if(m==="good") event("good");
@@ -5560,12 +5962,15 @@ html,body{
     const left=Math.max(8,Math.min(innerWidth-bw-8,S.x-10));
     const top=Math.max(64,S.y-8);
     bubble.style.transform=`translate3d(${left}px,${top}px,0)`;
-    canvas.style.transform=`translate3d(${S.x}px,${S.y}px,0)`;
+    // The V7 interaction layer persists a user-dragged position.
+    if(!window.KPBuddyPositionManaged){
+      canvas.style.transform=`translate3d(${S.x}px,${S.y}px,0)`;
+    }
   }
 
   function frame(now){
     const dt=Math.min(32,now-(S.last||now));S.last=now;
-    if(!hasBuddy()){
+    if(!hasBuddy() || window.KPBuddyForceHidden){
       stage.style.display="none";
       requestAnimationFrame(frame);return;
     }
@@ -5606,187 +6011,15 @@ html,body{
   setTimeout(start,700);
 })();
 </script>
-
-<script id="premium-redesign-runtime">
-(function(){
-  // Keep the existing app logic intact; this only improves a few visual labels.
-  const observer = new MutationObserver(function(){
-    document.querySelectorAll('.tab-btn').forEach(function(btn){
-      btn.style.fontWeight = '700';
-    });
-  });
-  const app = document.getElementById('app');
-  if(app) observer.observe(app,{childList:true,subtree:true});
-})();
-</script>
-
-
-<script id="premium-redesign-v2-runtime">
-(function(){
-  const root=document.getElementById("app");
-  if(!root) return;
-
-  function polish(){
-    const nav=document.querySelector(".app-tabbar");
-    if(nav && window.innerWidth<720){
-      const active=nav.querySelector(".tab-btn.active");
-      if(active && !nav.dataset.kpCentered){
-        requestAnimationFrame(()=>active.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"}));
-        nav.dataset.kpCentered="1";
-      }
-    }
-  }
-  const observer=new MutationObserver(function(){
-    const nav=document.querySelector(".app-tabbar");
-    if(nav) nav.removeAttribute("data-kp-centered");
-    polish();
-  });
-  observer.observe(root,{childList:true,subtree:true});
-  window.addEventListener("resize",polish,{passive:true});
-  polish();
-})();
-</script>
-
-
-<script id="calm-companion-runtime">
-(function(){
-  const canvas=document.getElementById("floatingBuddyCanvas");
-  if(!canvas) return;
-  let lastTap=0;
-  canvas.addEventListener("pointerdown",function(){
-    const now=Date.now();
-    if(now-lastTap<500) return;
-    lastTap=now;
-    canvas.style.transformOrigin="50% 80%";
-  },{passive:true});
-})();
-</script>
-
-
-<script id="fresh-premium-v4-runtime">
-(function(){
-  const app=document.getElementById("app");
-  if(!app) return;
-  const obs=new MutationObserver(function(){
-    document.querySelectorAll(".mood-btn").forEach(function(b){
-      if(b.classList.contains("selected")) b.setAttribute("aria-pressed","true");
-    });
-  });
-  obs.observe(app,{subtree:true,childList:true,attributes:true,attributeFilter:["class"]});
-})();
-</script>
-
-
-<script id="kp-home-v6-runtime">
-(function(){
-  function homePolish(){
-    const root=document.getElementById("app");
-    if(!root)return;
-    const content=root.querySelector(".content");
-    if(!content)return;
-
-    /* Mark the Home screen for CSS targeting without changing functionality. */
-    const active=root.querySelector(".tab-btn.active");
-    if(active){
-      const label=(active.textContent||"").trim().toLowerCase();
-      content.classList.toggle("kp-home-active",label==="today"||label==="home");
-    }
-  }
-  const o=new MutationObserver(homePolish);
-  const root=document.getElementById("app");
-  if(root)o.observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:["class"]});
-  homePolish();
-})();
-</script>
-
-
 <script id="kp-task-lock-cleanup">
 (function(){
   window.addEventListener("pagehide",function(){
     try{
-      localStorage.removeItem("keep-pushing12-activeTaskLock");
+      localStorage.removeItem("keep-pushing-progress:activeTaskLock");
     }catch(e){}
   });
 })();
 </script>
-
-
-<style id="functional-buddy-ui">
-#floatingBuddyStage{z-index:1200!important}
-#floatingBuddyCanvas{width:86px!important;height:106px!important;pointer-events:auto!important;cursor:pointer!important;transform-origin:50% 85%!important;filter:drop-shadow(0 8px 12px rgba(31,38,56,.12))!important}
-#floatingBuddyBubble{display:none!important}
-#kpBuddyPanel{position:fixed;right:18px;bottom:118px;z-index:1300;width:min(300px,calc(100vw - 36px));padding:14px;border:1px solid #e1e4ec;border-radius:18px;background:rgba(255,255,255,.98);color:#394256;box-shadow:0 18px 45px rgba(31,38,56,.18);backdrop-filter:blur(14px);display:none}
-#kpBuddyPanel.show{display:block;animation:kpBuddyIn .18s ease both}
-@keyframes kpBuddyIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
-.kp-buddy-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.kp-buddy-panel-title{font-weight:850;font-size:15px}
-.kp-buddy-panel-sub{font-size:11px;color:#7b8495;margin-top:2px}
-.kp-buddy-close{border:0;background:#f3f4f7;border-radius:999px;width:28px;height:28px;cursor:pointer;color:#596273}
-.kp-buddy-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.kp-buddy-action{border:1px solid #e3e6ec;background:#f8f9fb;color:#3d4659;border-radius:12px;padding:11px 9px;text-align:left;font-weight:750;cursor:pointer;font:inherit;font-size:12px}
-.kp-buddy-action:hover{background:#eef1f6}
-.kp-buddy-action.primary{background:#7567d9;color:#fff;border-color:#7567d9}
-.kp-buddy-action small{display:block;font-size:10px;font-weight:600;opacity:.72;margin-top:3px}
-.kp-buddy-hide{margin-top:10px;width:100%;border:0;background:transparent;color:#8a93a3;font-size:10px;cursor:pointer;padding:5px}
-#kpBuddyRestore{position:fixed;right:12px;bottom:12px;z-index:1299;display:none;border:1px solid #e1e4ec;background:#fff;color:#596273;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:750;box-shadow:0 8px 20px rgba(31,38,56,.12);cursor:pointer}
-@media(max-width:700px){#floatingBuddyCanvas{width:68px!important;height:84px!important}#kpBuddyPanel{right:10px;bottom:94px;width:min(285px,calc(100vw - 20px))}}
-</style>
-
-<script id="functional-buddy-runtime">
-(function(){
-  const stage=document.getElementById("floatingBuddyStage"),canvas=document.getElementById("floatingBuddyCanvas");
-  if(!stage||!canvas)return;
-  const HIDE_KEY="kpFunctionalBuddyHiddenUntil";
-  const panel=document.createElement("div"); panel.id="kpBuddyPanel";
-  panel.innerHTML=`<div class="kp-buddy-panel-head"><div><div class="kp-buddy-panel-title">Buddy tools</div><div class="kp-buddy-panel-sub">Tap me when you want help — otherwise I stay quiet.</div></div><button class="kp-buddy-close" type="button" aria-label="Close">×</button></div><div class="kp-buddy-actions"><button class="kp-buddy-action primary" data-buddy-action="focus">⏱ Start focus<small>Use the current task</small></button><button class="kp-buddy-action" data-buddy-action="next">↗ Next task<small>Pick a fresh task</small></button><button class="kp-buddy-action" data-buddy-action="today">🏠 Open Today<small>Go to your dashboard</small></button><button class="kp-buddy-action" data-buddy-action="mood">🙂 Check mood<small>Change how today feels</small></button></div><button class="kp-buddy-hide" type="button" data-buddy-action="hide">Hide buddy for 24 hours</button>`;
-  document.body.appendChild(panel);
-  const restore=document.createElement("button"); restore.id="kpBuddyRestore"; restore.type="button"; restore.textContent="🔥 Show Buddy"; document.body.appendChild(restore);
-  function hidden(){try{return Number(localStorage.getItem(HIDE_KEY)||0)>Date.now()}catch(e){return false}}
-  function applyVisibility(){const h=hidden();stage.style.display=h?"none":"block";panel.classList.remove("show");restore.style.display=h?"block":"none"}
-  function openPanel(){if(!hidden())panel.classList.toggle("show")}
-  function clickIfExists(id){const el=document.getElementById(id);if(el){el.click();return true}return false}
-  function goTab(tab){const el=document.querySelector('.tab-btn[data-tab="'+tab+'"]');if(el)el.click()}
-  function run(action){
-    if(action==="focus"){if(!clickIfExists("startBtn")){goTab("today");setTimeout(()=>clickIfExists("startBtn"),120)}}
-    else if(action==="next"){clickIfExists("nextBtn")}
-    else if(action==="today"){goTab("today")}
-    else if(action==="mood"){goTab("today");setTimeout(()=>{const c=document.querySelector(".mood-card");if(c)c.scrollIntoView({behavior:"smooth",block:"center"})},120)}
-    else if(action==="hide"){try{localStorage.setItem(HIDE_KEY,String(Date.now()+86400000))}catch(e){}applyVisibility();return}
-    panel.classList.remove("show");
-  }
-  canvas.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();openPanel()});
-  panel.addEventListener("click",e=>{const b=e.target.closest("[data-buddy-action]");if(b)run(b.dataset.buddyAction);if(e.target.closest(".kp-buddy-close"))panel.classList.remove("show")});
-  restore.addEventListener("click",()=>{try{localStorage.removeItem(HIDE_KEY)}catch(e){}applyVisibility();openPanel()});
-  document.addEventListener("click",e=>{if(panel.classList.contains("show")&&!panel.contains(e.target)&&!canvas.contains(e.target))panel.classList.remove("show")});
-  if(window.KPCompanion){window.KPCompanion.welcome=function(){};window.KPCompanion.idle=function(){}}
-  applyVisibility();
-})();
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <style id="kp-buddy-single-v7-ui">
 #kpOneBuddyPanel{position:fixed;z-index:10050;right:18px;bottom:112px;width:min(350px,calc(100vw - 28px));padding:15px;border:1px solid #e2e7e3;border-radius:18px;background:#fff;box-shadow:0 18px 48px rgba(31,38,56,.18);display:none}
 #kpOneBuddyPanel.show{display:block}
@@ -5808,6 +6041,11 @@ html,body{
 <script id="kp-buddy-single-v7-runtime">
 (function(){
   const POS="kpBuddySinglePosV7", HIDE="kpBuddySingleHiddenV7", PROFILE="kpBuddySingleProfileV7";
+  // One Buddy interaction system owns click, drag and visibility. The older
+  // canvas loop still draws the character, but no longer repositions it.
+  window.KPBuddySingleMode=true;
+  window.KPBuddyPositionManaged=true;
+  try{window.KPBuddyForceHidden=localStorage.getItem(HIDE)==="1"}catch(e){window.KPBuddyForceHidden=false}
   const canvas=document.getElementById("floatingBuddyCanvas");
   const stage=document.getElementById("floatingBuddyStage");
   if(!canvas||!stage)return;
@@ -5886,7 +6124,7 @@ html,body{
   }
 
   const panel=document.createElement("div");panel.id="kpOneBuddyPanel";document.body.appendChild(panel);
-  const edge=document.createElement("button");edge.id="kpBuddyEdgeBubble";edge.title="Open buddy";document.body.appendChild(edge);
+  const edge=document.createElement("button");edge.id="kpBuddyEdgeBubble";edge.type="button";edge.title="Open buddy";edge.setAttribute("aria-label","Show motivation buddy");document.body.appendChild(edge);
 
   function render(){
     const p=getProfile();
@@ -5909,8 +6147,8 @@ html,body{
       <button class="kpob-btn" data-voice="boy" style="${(p.voiceGender||"girl")==="boy"?"background:#718b78!important;color:#fff!important;":""}">👦 Boy</button></div>`;
   }
   function open(){render();panel.classList.add("show")}
-  function hide(){panel.classList.remove("show");stage.style.display="none";edge.style.display="block";localStorage.setItem(HIDE,"1")}
-  function restore(){stage.style.display="block";edge.style.display="none";localStorage.removeItem(HIDE);applyPosition()}
+  function hide(){panel.classList.remove("show");window.KPBuddyForceHidden=true;stage.style.display="none";edge.style.display="block";try{localStorage.setItem(HIDE,"1")}catch(e){}}
+  function restore(){window.KPBuddyForceHidden=false;stage.style.display="block";edge.style.display="none";try{localStorage.removeItem(HIDE)}catch(e){}applyPosition()}
   edge.onclick=restore;
 
   function memory(mood){
@@ -5946,7 +6184,15 @@ html,body{
   let dragging=false,moved=false,sx=0,sy=0,ox=0,oy=0,edgeTimer=null,edgeTriggered=false;
   function savePosition(){const r=canvas.getBoundingClientRect();try{localStorage.setItem(POS,JSON.stringify({x:r.left,y:r.top}))}catch(e){}}
   function applyPosition(){
-    try{const p=JSON.parse(localStorage.getItem(POS)||"null");if(p)canvas.style.transform=`translate3d(${p.x}px,${p.y}px,0)`}catch(e){}
+    try{
+      const p=JSON.parse(localStorage.getItem(POS)||"null");
+      if(!p)return;
+      const r=canvas.getBoundingClientRect();
+      const w=Math.max(70,r.width),h=Math.max(70,r.height);
+      const x=Math.max(4,Math.min(innerWidth-w-4,Number(p.x)||4));
+      const y=Math.max(55,Math.min(innerHeight-h-4,Number(p.y)||55));
+      canvas.style.transform=`translate3d(${x}px,${y}px,0)`;
+    }catch(e){}
   }
   function cancelEdge(){if(edgeTimer){clearTimeout(edgeTimer);edgeTimer=null}}
   function startEdge(){
@@ -5976,6 +6222,10 @@ html,body{
   canvas.addEventListener("pointerup",end);
   canvas.addEventListener("pointercancel",end);
   canvas.addEventListener("click",()=>{if(moved){moved=false;return}open()});
+  canvas.addEventListener("keydown",e=>{
+    if(e.key==="Enter"||e.key===" "){e.preventDefault();open()}
+  });
+  window.addEventListener("resize",applyPosition,{passive:true});
 
   window.KPCompanion={
     welcome(){say(`Good morning, ${userName()}. I'm ${buddyName()}. I'm here when you need me.`)},
@@ -5992,5 +6242,22 @@ html,body{
 })();
 </script>
 
+
+<style id="kp-reviewed-cleanup">
+/* Reviewed cleanup: accessibility + interaction polish only. */
+:focus-visible{outline:3px solid rgba(113,139,120,.45)!important;outline-offset:3px!important}
+button,.tab-btn,.mood-btn,#floatingBuddyCanvas{transition:transform .16s ease,box-shadow .16s ease,background-color .16s ease,border-color .16s ease}
+#floatingBuddyCanvas:focus-visible{border-radius:28px;outline-offset:5px!important}
+#kpOneBuddyPanel{max-height:min(560px,calc(100dvh - 140px));overflow:auto}
+.kpob-close{display:grid;place-items:center;line-height:1}
+.kpob-btn{min-height:42px}
+@media(max-width:700px){
+  #kpOneBuddyPanel{right:10px;bottom:96px;width:calc(100vw - 20px);max-height:calc(100dvh - 118px)}
+  .kpob-grid{grid-template-columns:1fr 1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
 </body>
 </html>
