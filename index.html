@@ -2941,6 +2941,7 @@ html,body{
   let taskLockHeartbeat = null;
   const taskLockOwner = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const TASK_LOCK_KEY = `${KEY}:activeTaskLock`;
+  const LOCAL_ACTIVE_TASK_KEY = `${KEY}:localActiveTask`;
   const TASK_LOCK_TTL = 15000;
   const taskLockChannel = ("BroadcastChannel" in window) ? new BroadcastChannel("keep-pushing-task-lock") : null;
   let activeTab = "today";
@@ -3910,48 +3911,120 @@ html,body{
   function reshufflePlan(type, priorityId) {
     const plan = getSchedulePlan(type);
     const priority = plan.find(s => s.id === priorityId);
-    if (!priority) return { moved: 0, overflow: 0 };
+    if (!priority) return { moved: 0, overflow: 0, priorityMoved: false };
 
     priority.priority = true;
     updateSlotTimeLabel(priority);
 
-    const anchors = plan
-      .filter(s => s.locked || s.id === priorityId)
-      .map(s => ({ id: s.id, start: normalizedStart(s), end: Math.min(DAY_END_MIN, normalizedStart(s) + slotDuration(s)) }))
+    const locked = plan
+      .filter(s => s.locked && s.id !== priorityId)
+      .map(s => ({
+        id: s.id,
+        start: normalizedStart(s),
+        end: Math.min(DAY_END_MIN, normalizedStart(s) + slotDuration(s))
+      }))
       .sort((a,b) => a.start - b.start);
+
+    const fits = (candidate, dur, occupied) => {
+      if (candidate < DAY_START_MIN || candidate + dur > DAY_END_MIN) return false;
+      return !occupied.some(x => overlaps(candidate, candidate + dur, x.start, x.end));
+    };
+
+    const nearestFreeStart = (desired, dur, occupied) => {
+      const latest = DAY_END_MIN - dur;
+      if (latest < DAY_START_MIN) return null;
+      const base = Math.max(DAY_START_MIN, Math.min(latest, desired));
+      if (fits(base, dur, occupied)) return base;
+
+      for (let delta = 5; delta <= DAY_END_MIN - DAY_START_MIN; delta += 5) {
+        const later = base + delta;
+        if (later <= latest && fits(later, dur, occupied)) return later;
+        const earlier = base - delta;
+        if (earlier >= DAY_START_MIN && fits(earlier, dur, occupied)) return earlier;
+      }
+      return null;
+    };
+
+    const priorityDesired = normalizedStart(priority);
+    const priorityDur = slotDuration(priority);
+    const priorityStart = nearestFreeStart(priorityDesired, priorityDur, locked);
+    let priorityMoved = false;
+
+    if (priorityStart !== null) {
+      priorityMoved = priorityStart !== priorityDesired;
+      priority.start = `${String(Math.floor(priorityStart / 60)).padStart(2,"0")}:${String(priorityStart % 60).padStart(2,"0")}`;
+      updateSlotTimeLabel(priority);
+    }
+
+    const placed = locked.slice();
+    if (priorityStart !== null) {
+      placed.push({ id: priority.id, start: priorityStart, end: priorityStart + priorityDur });
+    }
 
     const flex = plan
       .filter(s => !s.locked && s.id !== priorityId)
       .map((s, index) => ({ s, index, desired: normalizedStart(s) }))
       .sort((a,b) => a.desired - b.desired || a.index - b.index);
 
-    const placed = anchors.slice();
-    let moved = 0, overflow = 0;
+    let moved = 0;
+    let overflow = priorityStart === null ? 1 : 0;
+
     for (const item of flex) {
       const dur = slotDuration(item.s);
-      let candidate = Math.max(DAY_START_MIN, item.desired);
-      let guard = 0;
-      while (guard++ < 100) {
-        const hit = placed
-          .filter(x => overlaps(candidate, candidate + dur, x.start, x.end))
-          .sort((a,b) => a.start - b.start)[0];
-        if (!hit) break;
-        candidate = hit.end;
-      }
-      if (candidate + dur > DAY_END_MIN) {
+      const candidate = nearestFreeStart(item.desired, dur, placed);
+
+      if (candidate === null) {
+        // Do not leave the task at an overlapping stale time.
+        item.s._overflow = true;
         overflow++;
-        candidate = Math.max(DAY_START_MIN, DAY_END_MIN - dur);
-        const lateHit = placed.filter(x => overlaps(candidate, candidate + dur, x.start, x.end)).sort((a,b)=>b.end-a.end)[0];
-        if (lateHit) candidate = Math.max(DAY_START_MIN, lateHit.start - dur);
+        continue;
       }
+
+      delete item.s._overflow;
       if (candidate !== item.desired) moved++;
-      item.s.start = `${String(Math.floor(candidate/60)).padStart(2,"0")}:${String(candidate%60).padStart(2,"0")}`;
+      item.s.start = `${String(Math.floor(candidate / 60)).padStart(2,"0")}:${String(candidate % 60).padStart(2,"0")}`;
       updateSlotTimeLabel(item.s);
-      placed.push({ id:item.s.id, start:candidate, end:Math.min(DAY_END_MIN,candidate+dur) });
+      placed.push({ id: item.s.id, start: candidate, end: candidate + dur });
     }
 
-    plan.sort((a,b) => normalizedStart(a) - normalizedStart(b));
-    return { moved, overflow };
+    plan.sort((a,b) => {
+      if (!!a._overflow !== !!b._overflow) return a._overflow ? 1 : -1;
+      return normalizedStart(a) - normalizedStart(b);
+    });
+
+    return { moved, overflow, priorityMoved };
+  }
+
+  function reflowOverflowTasks(type) {
+    const plan = getSchedulePlan(type);
+    const overflow = plan.filter(s => s._overflow);
+    if (!overflow.length) return { restored: 0, overflow: 0 };
+
+    overflow.forEach(s => { delete s._overflow; });
+
+    let anchor = plan.find(s => s.priority && !s.locked);
+    let temporaryAnchor = false;
+
+    if (!anchor) {
+      anchor = plan.find(s => !s.locked);
+      if (!anchor) return { restored: 0, overflow: overflow.length };
+      temporaryAnchor = true;
+    }
+
+    const originalPriority = !!anchor.priority;
+    const result = reshufflePlan(type, anchor.id);
+
+    if (temporaryAnchor) {
+      anchor.priority = originalPriority;
+      updateSlotTimeLabel(anchor);
+    }
+
+    const remaining = plan.filter(s => s._overflow).length;
+    return {
+      restored: Math.max(0, overflow.length - remaining),
+      overflow: remaining,
+      result
+    };
   }
 
   function dayType(d) {
@@ -4018,10 +4091,11 @@ html,body{
   function toggleTodayHoliday() {
     saved.holidayDates = saved.holidayDates || {};
     const today = todayStr();
-    if (saved.holidayDates[today]) delete saved.holidayDates[today];
+    const wasHoliday = !!saved.holidayDates[today];
+    if (wasHoliday) delete saved.holidayDates[today];
     else saved.holidayDates[today] = true;
     scheduleView = null;
-    persist();
+    persist({ authoritative: wasHoliday });
   }
 
   function renderSchedule() {
@@ -4054,10 +4128,10 @@ html,body{
       </div>
       ${plan.map(slot => {
         const done = isToday && doneMap[slot.id];
-        const badge = slot.locked ? `<span class="sched-badge static">🔒 Static</span>` : slot.priority ? `<span class="sched-badge priority">⚡ Priority</span>` : `<span class="sched-badge flexible">↔ Flexible</span>`;
+        const badge = slot._overflow ? `<span class="sched-badge priority">⚠ Unscheduled</span>` : slot.locked ? `<span class="sched-badge static">🔒 Static</span>` : slot.priority ? `<span class="sched-badge priority">⚡ Priority</span>` : `<span class="sched-badge flexible">↔ Flexible</span>`;
         if (!scheduleEditMode) return `
           <div class="sched-block ${done ? "sched-done" : ""} ${slot.priority ? "sched-priority" : ""} ${slot.locked ? "sched-static" : ""}">
-            <div class="sched-time-row"><div class="sched-time">${esc(slot.time)}</div>${badge}</div>
+            <div class="sched-time-row"><div class="sched-time">${slot._overflow ? "No free time" : esc(slot.time)}</div>${badge}</div>
             <div class="sched-task">${esc(slot.label || "Task")}</div>
             <div class="sched-mins">${esc(slot.text || "Planned activity")} · ${slotDuration(slot)} min</div>
             ${done ? `<div class="done-msg">✓ Done</div>` : (isToday ? `<button class="sched-done-btn" data-id="${slot.id}" data-view="${viewType}">Mark done</button>` : ``)}
@@ -4874,7 +4948,7 @@ html,body{
     const clock = `${h12}:${String(now.getMinutes()).padStart(2, "0")}`;
     const period = now.getHours() >= 12 ? "PM" : "AM";
     const type = todayScheduleType();
-    const plan = getSchedulePlan(type).slice().sort((a,b) => normalizedStart(a) - normalizedStart(b));
+    const plan = getSchedulePlan(type).filter(s => !s._overflow).slice().sort((a,b) => normalizedStart(a) - normalizedStart(b));
     const current = plan.find(s => minute >= normalizedStart(s) && minute < normalizedStart(s) + slotDuration(s));
     const next = plan.find(s => normalizedStart(s) > minute);
     if (current) {
@@ -5055,12 +5129,17 @@ html,body{
       });
     });
 
-    document.addEventListener("click", () => {
-      const pop = document.getElementById("kpRoundClockPop");
-      const btn = document.getElementById("kpRoundClockBtn");
-      if (pop) pop.classList.remove("show");
-      if (btn) btn.setAttribute("aria-expanded", "false");
-    }, { once: true });
+    if (!window.KPRoundClockOutsideClickBound) {
+      window.KPRoundClockOutsideClickBound = true;
+      document.addEventListener("click", (e) => {
+        const pop = document.getElementById("kpRoundClockPop");
+        const btn = document.getElementById("kpRoundClockBtn");
+        if (!pop || !btn || !pop.classList.contains("show")) return;
+        if (pop.contains(e.target) || btn.contains(e.target)) return;
+        pop.classList.remove("show");
+        btn.setAttribute("aria-expanded", "false");
+      });
+    }
 
     const menuToggleBtn = q("menuToggleBtn");
     if (menuToggleBtn) menuToggleBtn.addEventListener("click", () => {
@@ -5188,11 +5267,19 @@ html,body{
         slot.priority = !slot.locked && !!(priorityInput && priorityInput.checked);
         updateSlotTimeLabel(slot);
         let reshuffleResult = null;
-        if (slot.priority) reshuffleResult = reshufflePlan(view, id);
+        if (slot.priority) {
+          reshuffleResult = reshufflePlan(view, id);
+        } else {
+          const overflowReflow = reflowOverflowTasks(view);
+          if (overflowReflow.restored) {
+            showToast("Schedule recovered", `${overflowReflow.restored} previously unscheduled task${overflowReflow.restored === 1 ? "" : "s"} fit back into the day.`);
+          }
+        }
         if (slot.remindAt) getNotifyFlags().slotsFired[slot.id] = false;
         persist();
+        if (reshuffleResult && reshuffleResult.priorityMoved) showToast("🔒 Static task protected", "That priority time overlapped a static task, so the priority task moved to the nearest free time.");
         if (reshuffleResult && reshuffleResult.moved) showToast("⚡ Schedule reshuffled", `${reshuffleResult.moved} flexible task${reshuffleResult.moved === 1 ? "" : "s"} moved around your priority task.`);
-        if (reshuffleResult && reshuffleResult.overflow) showToast("Day is tight", `${reshuffleResult.overflow} task${reshuffleResult.overflow === 1 ? "" : "s"} had to be packed near the end of the 6:30 AM–10:30 PM window.`);
+        if (reshuffleResult && reshuffleResult.overflow) showToast("Day is full", `${reshuffleResult.overflow} task${reshuffleResult.overflow === 1 ? "" : "s"} could not fit without overlap and ${reshuffleResult.overflow === 1 ? "was" : "were"} left unscheduled.`);
         rerender();
       });
     });
@@ -5204,6 +5291,10 @@ html,body{
         const plan = getSchedulePlan(view);
         const idx = plan.findIndex(s => s.id === id);
         if (idx !== -1) plan.splice(idx, 1);
+        const overflowReflow = reflowOverflowTasks(view);
+        if (overflowReflow.restored) {
+          showToast("Schedule recovered", `${overflowReflow.restored} previously unscheduled task${overflowReflow.restored === 1 ? "" : "s"} fit back into the day.`);
+        }
         persist();
         rerender();
       });
@@ -5223,12 +5314,14 @@ html,body{
 
     const skipBtn = q("skipBtn");
     if (skipBtn) skipBtn.addEventListener("click", () => {
+      clearLocalActiveTask();
       session = newTask();
       render({ quote: opts.quote });
     });
 
     const nextBtn = q("nextBtn");
     if (nextBtn) nextBtn.addEventListener("click", () => {
+      clearLocalActiveTask();
       session = newTask();
       render({ quote: pick(quotePoolForMood(todaysMood())) });
     });
@@ -5270,9 +5363,8 @@ html,body{
       const today = todayStr();
       saved.journal = saved.journal || {};
       const text = q("journalInput").value.trim();
-      if (text) saved.journal[today] = text;
-      else delete saved.journal[today];
-      persist();
+      if (text) { saved.journal[today] = text; persist(); }
+      else { delete saved.journal[today]; persist({ authoritative: true }); }
       session.journalSaved = true;
       rerender();
     });
@@ -5306,7 +5398,7 @@ html,body{
         e.preventDefault();
         e.stopPropagation();
         saved.videoLinks.splice(parseInt(btn.dataset.idx, 10), 1);
-        persist();
+        persist({ authoritative: true });
         rerender();
       });
     });
@@ -5350,7 +5442,7 @@ html,body{
     document.querySelectorAll(".remove-task-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         saved.customTasks.splice(parseInt(btn.dataset.idx, 10), 1);
-        persist();
+        persist({ authoritative: true });
         rerender();
       });
     });
@@ -5478,8 +5570,8 @@ html,body{
 
     merged.history = dedupeBy(
       (incoming.history || []).concat(local.history || []),
-      h => `${h.date}|${h.time}|${h.text}|${h.minutes}`
-    ).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+      h => h && h.id ? `id:${h.id}` : `legacy:${h.date}|${h.time}|${h.text}|${h.minutes}`
+    ).sort((a, b) => ((a.date || "") + (a.time || "")).localeCompare((b.date || "") + (b.time || "")));
 
     merged.customTasks = dedupeBy(
       (incoming.customTasks || []).concat(local.customTasks || []),
@@ -5510,11 +5602,14 @@ html,body{
     return merged;
   }
 
-  function persist() {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) saved = mergeSaved(saved, JSON.parse(raw));
-    } catch (e) { /* on-disk copy missing/corrupt — just write what we have */ }
+  function persist(options = {}) {
+    const authoritative = !!options.authoritative;
+    if (!authoritative) {
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (raw) saved = mergeSaved(saved, JSON.parse(raw));
+      } catch (e) { /* on-disk copy missing/corrupt — just write what we have */ }
+    }
     try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) { console.error("Save failed", e); }
     scheduleCloudSave();
   }
@@ -5852,6 +5947,32 @@ html,body{
     } catch (err) {}
   });
 
+  function saveLocalActiveTask(endAt) {
+    if (fbUser || !session || !session.running || session.remoteRunning) { try { localStorage.removeItem(LOCAL_ACTIVE_TASK_KEY); } catch (e) {} return; }
+    try { localStorage.setItem(LOCAL_ACTIVE_TASK_KEY, JSON.stringify({ text:session.text, minutes:session.minutes, endAt:Number(endAt) })); } catch (e) {}
+  }
+  function clearLocalActiveTask() { try { localStorage.removeItem(LOCAL_ACTIVE_TASK_KEY); } catch (e) {} }
+  function runLocalTimerFromEnd(endAt) {
+    if (timerHandle) clearInterval(timerHandle);
+    timerHandle=setInterval(()=>{
+      const remaining=Math.max(0,Math.round((endAt-Date.now())/1000));
+      if(remaining<=0){
+        clearInterval(timerHandle); timerHandle=null; session.secondsLeft=0; session.running=false; session.remoteRunning=false; session.finished=true; clearLocalActiveTask();
+        celebrateCompletion(); notify("Time's up", `Nice work — "${session.text}" is done.`); completeTask(); releaseTaskLock(); clearPublishedCloudActiveTask(); releaseCloudTaskLock();
+      } else { session.secondsLeft=remaining; const timerEl=app.querySelector(".timer"); if(timerEl) timerEl.textContent=fmtTime(remaining); }
+    },1000);
+  }
+  function restoreLocalActiveTask() {
+    try {
+      const raw=localStorage.getItem(LOCAL_ACTIVE_TASK_KEY); if(!raw) return false;
+      const active=JSON.parse(raw), endAt=Number(active.endAt||0), remaining=Math.max(0,Math.round((endAt-Date.now())/1000));
+      if(!active.text || !active.minutes || remaining<=0){ clearLocalActiveTask(); return false; }
+      try { localStorage.removeItem(TASK_LOCK_KEY); } catch (e) {}
+      session={...session,text:String(active.text),minutes:Math.max(1,Number(active.minutes)),secondsLeft:remaining,running:true,finished:false,remoteRunning:false};
+      runLocalTimerFromEnd(endAt); return true;
+    } catch(e){ clearLocalActiveTask(); return false; }
+  }
+
   async function startTimer() {
     if (session.running) return;
 
@@ -5897,44 +6018,22 @@ html,body{
       render();
       return;
     }
-    if (!fbUser) {
-      showToast("Local task only", "Sign in on this device if you want the running task to appear on your other devices.");
-    }
+    if (!fbUser) { saveLocalActiveTask(endAt); showToast("Local task only", "Sign in on this device if you want the running task to appear on your other devices."); }
+    else clearLocalActiveTask();
 
     render();
+    runLocalTimerFromEnd(endAt);
+  }
 
-    timerHandle = setInterval(() => {
-      const remaining = Math.round((endAt - Date.now()) / 1000);
-
-      if (remaining <= 0) {
-        clearInterval(timerHandle);
-        timerHandle = null;
-        session.secondsLeft = 0;
-        session.running = false;
-        session.remoteRunning = false;
-        session.finished = true;
-
-        celebrateCompletion();
-        notify("Time's up", `Nice work — "${session.text}" is done.`);
-
-        // Complete the work first, then release both locks.
-        completeTask();
-        releaseTaskLock();
-        clearPublishedCloudActiveTask();
-        releaseCloudTaskLock();
-      } else {
-        session.secondsLeft = remaining;
-        const timerEl = app.querySelector(".timer");
-        if (timerEl) timerEl.textContent = fmtTime(remaining);
-      }
-    }, 1000);
+  function completionEventId(prefix = "task") {
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
   }
 
   function logCompletion(text, minutes) {
     const today = todayStr();
     const timeStr = new Date().toTimeString().slice(0, 5);
     saved.history = saved.history || [];
-    saved.history.push({ date: today, time: timeStr, text, minutes });
+    saved.history.push({ id: completionEventId("done"), date: today, time: timeStr, text, minutes });
     const graceLogBefore = (saved.streakGraceLog || []).length;
     deriveStatsFromHistory(saved);
     if ((saved.streakGraceLog || []).length > graceLogBefore) {
@@ -5987,7 +6086,9 @@ html,body{
     deriveStatsFromHistory(saved);
     checkStreakDecay();
     session = newTask();
+    const restoredLocalTask = restoreLocalActiveTask();
     render();
+    if (restoredLocalTask) showToast("Task resumed", "Your signed-out focus timer continued from where it should be.");
     initBackground();
     window.addEventListener("storage", (e) => {
       if (e.key !== KEY || !e.newValue || !saved) return;
