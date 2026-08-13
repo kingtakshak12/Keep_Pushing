@@ -2960,7 +2960,9 @@ html,body{
   let cloudTaskLockOwned = false;
   let cloudTaskLockHeartbeat = null;
   let cloudTaskUnsubscribe = null;
+  let cloudTaskPollTimer = null;
   let remoteCloudTaskOwner = null;
+  let lastRemoteActiveSignature = "";
   const CLOUD_TASK_LOCK_TTL = 120000; // 2 minutes; heartbeat refreshes it.
   const CLOUD_TASK_LOCK_HEARTBEAT = 30000;
   const cloudTaskLockId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -3048,30 +3050,64 @@ html,body{
   // The account document carries one activeTask record. Every signed-in
   // device listens to it and mirrors the same countdown using endAt.
   // ============================================================
+  function handleCloudActiveTask(active) {
+    if (active && active.owner === cloudTaskLockId) return;
+    const valid = active && active.owner && Number(active.endAt || 0) > Date.now();
+
+    if (valid) {
+      const sig = `${active.owner}|${active.endAt}|${active.text || ""}`;
+      if (sig !== lastRemoteActiveSignature || remoteCloudTaskOwner !== active.owner) {
+        lastRemoteActiveSignature = sig;
+        mirrorCloudTask(active);
+      }
+    } else if (remoteCloudTaskOwner) {
+      lastRemoteActiveSignature = "";
+      stopMirroredCloudTask();
+    }
+  }
+
+  async function pollCloudActiveTask() {
+    if (!fbUser || !fbDb || !FsLib) return;
+    try {
+      const ref = FsLib.doc(fbDb, "users", fbUser.uid);
+      const snap = await FsLib.getDoc(ref);
+      if (!snap.exists()) return;
+      handleCloudActiveTask((snap.data() || {}).activeTask || null);
+    } catch (e) {
+      console.warn("Active-task poll failed", e);
+    }
+  }
+
   function startCloudTaskListener(user) {
-    if (!user || !fbDb || !FsLib || !FsLib.onSnapshot) return;
+    if (!user || !fbDb || !FsLib) return;
+
     if (cloudTaskUnsubscribe) {
       try { cloudTaskUnsubscribe(); } catch (e) {}
       cloudTaskUnsubscribe = null;
     }
+    clearInterval(cloudTaskPollTimer);
+    cloudTaskPollTimer = null;
 
     const ref = FsLib.doc(fbDb, "users", user.uid);
-    cloudTaskUnsubscribe = FsLib.onSnapshot(ref, snap => {
-      if (!snap.exists()) return;
-      const data = snap.data() || {};
-      const active = data.activeTask || null;
 
-      // Our own device already owns and renders this session locally.
-      if (active && active.owner === cloudTaskLockId) return;
-
-      if (active && Number(active.endAt || 0) > Date.now()) {
-        mirrorCloudTask(active);
-      } else if (remoteCloudTaskOwner) {
-        stopMirroredCloudTask();
+    // Realtime path when Firestore's streaming transport works.
+    if (FsLib.onSnapshot) {
+      try {
+        cloudTaskUnsubscribe = FsLib.onSnapshot(ref, snap => {
+          if (!snap.exists()) return;
+          handleCloudActiveTask((snap.data() || {}).activeTask || null);
+        }, err => {
+          console.warn("Realtime active-task listener unavailable; polling continues", err);
+        });
+      } catch (e) {
+        console.warn("Could not start realtime active-task listener", e);
       }
-    }, err => {
-      console.warn("Realtime active-task listener stopped", err);
-    });
+    }
+
+    // Reliable fallback for mobile browsers/file hosting where realtime
+    // WebChannel can be delayed or blocked.
+    pollCloudActiveTask();
+    cloudTaskPollTimer = setInterval(pollCloudActiveTask, 3000);
   }
 
   function mirrorCloudTask(active) {
@@ -3132,29 +3168,42 @@ html,body{
   }
 
   async function publishCloudActiveTask(endAt) {
-    if (!cloudTaskLockOwned || !fbUser || !fbDb || !FsLib) return true;
+    // Active task visibility must not depend on the transaction lock.
+    // If the user is signed in, always publish the running session so every
+    // other signed-in device can discover it via realtime or polling.
+    if (!fbUser || !fbDb || !FsLib) return false;
     const ref = FsLib.doc(fbDb, "users", fbUser.uid);
     try {
-      await FsLib.runTransaction(fbDb, async tx => {
-        const snap = await tx.get(ref);
-        const data = snap.exists() ? (snap.data() || {}) : {};
-        const lock = data.taskLock || null;
-        if (!lock || lock.owner !== cloudTaskLockId) throw new Error("TASK_LOCK_LOST");
-        tx.set(ref, {
-          activeTask: {
-            owner: cloudTaskLockId,
-            text: session.text,
-            minutes: session.minutes,
-            startedAt: Date.now(),
-            endAt: Number(endAt),
-            device: `${navigator.platform || "device"}`
-          }
-        }, { merge: true });
-      });
+      await FsLib.setDoc(ref, {
+        activeTask: {
+          owner: cloudTaskLockId,
+          text: session.text,
+          minutes: session.minutes,
+          startedAt: Date.now(),
+          endAt: Number(endAt),
+          heartbeatAt: Date.now(),
+          device: `${navigator.platform || "device"}`
+        }
+      }, { merge: true });
       return true;
     } catch (e) {
       console.warn("Could not publish active task", e);
       return false;
+    }
+  }
+
+  async function clearPublishedCloudActiveTask() {
+    if (!fbUser || !fbDb || !FsLib) return;
+    const ref = FsLib.doc(fbDb, "users", fbUser.uid);
+    try {
+      const snap = await FsLib.getDoc(ref);
+      if (!snap.exists()) return;
+      const active = (snap.data() || {}).activeTask || null;
+      if (active && active.owner === cloudTaskLockId) {
+        await FsLib.updateDoc(ref, { activeTask: FsLib.deleteField() });
+      }
+    } catch (e) {
+      console.warn("Could not clear published active task", e);
     }
   }
 
@@ -3215,6 +3264,24 @@ html,body{
   }
 
   async function refreshCloudTaskLock() {
+    if (fbUser && fbDb && FsLib && session && session.running && !session.remoteRunning) {
+      try {
+        const endAt = Date.now() + Math.max(0, session.secondsLeft || 0) * 1000;
+        await FsLib.setDoc(FsLib.doc(fbDb, "users", fbUser.uid), {
+          activeTask: {
+            owner: cloudTaskLockId,
+            text: session.text,
+            minutes: session.minutes,
+            startedAt: Date.now() - Math.max(0, (session.minutes * 60 - session.secondsLeft)) * 1000,
+            endAt,
+            heartbeatAt: Date.now(),
+            device: `${navigator.platform || "device"}`
+          }
+        }, { merge: true });
+      } catch (e) {
+        console.warn("Active-task heartbeat failed", e);
+      }
+    }
     if (!cloudTaskLockOwned || !fbUser || !fbDb || !FsLib) return;
 
     const ref = FsLib.doc(fbDb, "users", fbUser.uid);
@@ -3265,8 +3332,12 @@ html,body{
     clearInterval(cloudTaskLockHeartbeat);
     cloudTaskLockHeartbeat = null;
 
-    if (!cloudTaskLockOwned || !fbUser || !fbDb || !FsLib) {
+    if (!fbUser || !fbDb || !FsLib) {
       cloudTaskLockOwned = false;
+      return;
+    }
+    if (!cloudTaskLockOwned) {
+      await clearPublishedCloudActiveTask();
       return;
     }
 
@@ -3341,7 +3412,10 @@ html,body{
       try { cloudTaskUnsubscribe(); } catch (e) {}
       cloudTaskUnsubscribe = null;
     }
+    clearInterval(cloudTaskPollTimer);
+    cloudTaskPollTimer = null;
     remoteCloudTaskOwner = null;
+    lastRemoteActiveSignature = "";
     fbUser = null;
     cloudStatus = "signed-out";
     rerenderGlobal();
@@ -3522,7 +3596,7 @@ html,body{
     const baseLabel = TASK_LABELS[mood] || "Your task";
     return `
       <div class="task-card ${session.running ? "task-card-focus" : ""}">
-        <div class="task-label">${session.finished ? "Completed" : session.running ? (session.remoteRunning ? "In progress · another device" : "In progress") : baseLabel}</div>
+        <div class="task-label">${session.finished ? "Completed" : session.running ? (session.remoteRunning ? "☁ Live from another device" : "In progress") : baseLabel}</div>
         <div class="task-text">${esc(session.text)}</div>
         ${session.finished ? `
           <div class="done-msg">✓ Nice work — that's done.</div>
@@ -5766,13 +5840,16 @@ html,body{
     session.remoteRunning = false;
 
     const published = await publishCloudActiveTask(endAt);
-    if (!published && cloudTaskLockOwned) {
+    if (fbUser && !published) {
       session.running = false;
       releaseTaskLock();
       await releaseCloudTaskLock();
-      notify("Could not sync task", "The task could not be shared with your other signed-in devices. Please try again.");
+      notify("Could not sync task", "You're signed in, but this running task could not be published to your account. Check the connection and try again.");
       render();
       return;
+    }
+    if (!fbUser) {
+      showToast("Local task only", "Sign in on this device if you want the running task to appear on your other devices.");
     }
 
     render();
@@ -5794,6 +5871,7 @@ html,body{
         // Complete the work first, then release both locks.
         completeTask();
         releaseTaskLock();
+        clearPublishedCloudActiveTask();
         releaseCloudTaskLock();
       } else {
         session.secondsLeft = remaining;
